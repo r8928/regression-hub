@@ -17,6 +17,15 @@ Free MongoDB M0 cluster: <https://cloud.mongodb.com>
 
 Next.js 15 · React 18 · MongoDB 6 · NextAuth 4 · React Query 5 · TipTap 3 · Recharts · jsPDF · xlsx · bcryptjs · Tailwind CSS 3
 
+## Linting
+
+ESLint 9 (flat config) with `next/core-web-vitals` + strict correctness rules (`no-unused-vars`, `eqeqeq`, `prefer-const`, `no-var`, `no-console` warn). Config lives in `eslint.config.mjs`.
+
+```bash
+npm run lint        # report violations
+npm run lint:fix    # auto-fix what can be fixed
+```
+
 ## Deploy to Vercel
 
 1. Push the repo to GitHub.

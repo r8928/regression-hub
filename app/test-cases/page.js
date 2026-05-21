@@ -207,7 +207,7 @@ export default function TestCasesPage() {
   async function saveField(id, field, value) {
     setSaving((s) => ({ ...s, [id]: true }));
     try {
-      let extra = {};
+      const extra = {};
       if (field === 'status' && (value === 'Pass' || value === 'Fail')) {
         const today = dateStamp();
         if (bVersion) extra.softwareVersionTested = bVersion;

@@ -5,7 +5,9 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
   },
   "dependencies": {
     "@tanstack/react-query": "^5.100.11",
@@ -24,7 +26,10 @@
     "xlsx": "^0.18.5"
   },
   "devDependencies": {
+    "@eslint/eslintrc": "^3.3.5",
     "autoprefixer": "^10",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "~15.2.6",
     "postcss": "^8",
     "tailwindcss": "^3"
   }
