@@ -3,9 +3,14 @@
 import { useState, useEffect, useCallback } from 'react';
 import ToastProvider, { showToast } from '@/components/Toast';
 import { normalizedStatus, dateStamp } from '@/utils/formatters';
+import { buildModuleMap } from '@/utils/buildModuleMap';
+import { loadPdf, drawPdfPageHeader } from '@/utils/pdfHelpers';
+import { useApplications } from '@/hooks/useSharedData';
+import PageHeader from '@/components/PageHeader';
+import MetricCards from '@/components/MetricCards';
 
 export default function ReportsPage() {
-  const [applications, setApplications] = useState([]);
+  const { data: applications = [] } = useApplications();
   const [versions, setVersions] = useState([]);
   const [selectedApp, setSelectedApp] = useState('');
   const [selectedVersion, setSelectedVersion] = useState('');
@@ -32,7 +37,6 @@ export default function ReportsPage() {
   }, []);
 
   useEffect(() => {
-    fetch('/api/applications').then((r) => r.json()).then(setApplications);
     fetchVersions();
     fetchSummary('');
     fetch('/api/settings')
@@ -247,12 +251,7 @@ export default function ReportsPage() {
       const cases = await res.json();
       if (!cases.length) { showToast('No test cases to export', 'info'); setGeneratingPdf(false); return; }
 
-      // jsPDF v4 uses a named export; v3 used default — support both
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.jsPDF ?? jsPDFModule.default;
-      // jspdf-autotable v5 ships as default export; v3 as named — support both
-      const autoTableModule = await import('jspdf-autotable');
-      const autoTable = autoTableModule.default ?? autoTableModule.autoTable;
+      const { jsPDF, autoTable } = await loadPdf();
 
       const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const W = doc.internal.pageSize.width;   // 595
@@ -263,22 +262,11 @@ export default function ReportsPage() {
       const total = cases.length;
       const passed = cases.filter((t) => normalizedStatus(t.status) === 'Pass').length;
       const failed = cases.filter((t) => normalizedStatus(t.status) === 'Fail').length;
-      const pending = total - passed - failed;
+      const _pending = total - passed - failed;
       const passPercent = total ? Math.round((passed / total) * 100) : 0;
       const failedCases = cases.filter((t) => normalizedStatus(t.status) === 'Fail');
 
-      // Module groups
-      const moduleMap = {};
-      cases.forEach((tc) => {
-        const key = `${tc.moduleId || tc.moduleName}`;
-        if (!moduleMap[key]) moduleMap[key] = { module: tc.moduleName || '—', app: tc.applicationName || '—', total: 0, pass: 0, fail: 0, pending: 0 };
-        moduleMap[key].total++;
-        const st = normalizedStatus(tc.status);
-        if (st === 'Pass') moduleMap[key].pass++;
-        else if (st === 'Fail') moduleMap[key].fail++;
-        else moduleMap[key].pending++;
-      });
-      const moduleRows = Object.values(moduleMap).sort((a, b) => a.module.localeCompare(b.module));
+      const _moduleRows = buildModuleMap(cases);
 
       // Draw a donut arc segment using filled triangles
       function drawDonutSegment(cx, cy, outerR, innerR, startDeg, endDeg, color) {
@@ -303,11 +291,7 @@ export default function ReportsPage() {
       }
 
       // ── PAGE 1: Cover + Narrative ──────────────────────────────────
-      // Dark header
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, W, 100, 'F');
-      doc.setFillColor(13, 148, 136);
-      doc.rect(0, 0, W, 4, 'F');
+      drawPdfPageHeader(doc, { width: W, height: 100, accentHeight: 4 });
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20); doc.setFont('helvetica', 'bold');
       doc.text('Regression Testing Signoff Report', ML, 48);
@@ -446,27 +430,12 @@ export default function ReportsPage() {
         const aTotal   = appCases.length;
         const aPassPct = aTotal ? Math.round((aPassed / aTotal) * 100) : 0;
 
-        // Per-application module breakdown
-        const aModMap = {};
-        appCases.forEach((tc) => {
-          const key = tc.moduleId || tc.moduleName || '—';
-          if (!aModMap[key]) aModMap[key] = { module: tc.moduleName || '—', total: 0, pass: 0, fail: 0, pending: 0 };
-          aModMap[key].total++;
-          const st = normalizedStatus(tc.status);
-          if (st === 'Pass') aModMap[key].pass++;
-          else if (st === 'Fail') aModMap[key].fail++;
-          else aModMap[key].pending++;
-        });
-        const aModRows = Object.values(aModMap).sort((a, b) => a.module.localeCompare(b.module));
+        const aModRows = buildModuleMap(appCases);
 
         // New page for each application
         doc.addPage();
 
-        // Dark header bar
-        doc.setFillColor(15, 23, 42);
-        doc.rect(0, 0, W, 32, 'F');
-        doc.setFillColor(13, 148, 136);
-        doc.rect(0, 0, W, 3, 'F');
+        drawPdfPageHeader(doc, { width: W, height: 32, accentHeight: 3 });
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(13); doc.setFont('helvetica', 'bold');
         doc.text('Summary', ML, 22);
@@ -554,10 +523,7 @@ export default function ReportsPage() {
 
       // ── PAGE 3: Bug Report ─────────────────────────────────────────
       doc.addPage();
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, W, 32, 'F');
-      doc.setFillColor(220, 38, 38);
-      doc.rect(0, 0, W, 3, 'F');
+      drawPdfPageHeader(doc, { width: W, height: 32, accentHeight: 3, accent: [220, 38, 38] });
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(13); doc.setFont('helvetica', 'bold');
       doc.text('Bug Report', ML, 22);
@@ -626,11 +592,7 @@ export default function ReportsPage() {
   return (
     <div>
       <ToastProvider />
-      <div className="page-header">
-        <div className="page-eyebrow">Exports</div>
-        <h1 className="page-title">Reports</h1>
-        <p className="page-sub">Generate PDF signoff reports and Excel exports</p>
-      </div>
+      <PageHeader eyebrow="Exports" title="Reports" sub="Generate PDF signoff reports and Excel exports" />
 
       {/* Version History */}
       {versions.length > 0 && (
@@ -1075,21 +1037,17 @@ export default function ReportsPage() {
       )}
 
       {summary && (
-        <div className="metric-grid" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
-          {[
+        <MetricCards
+          columns={6}
+          cards={[
             { label: 'Total', value: summary.total },
             { label: 'Passed', value: summary.passed, cls: 'pass' },
             { label: 'Failed', value: summary.failed, cls: 'fail' },
             { label: 'Pending', value: summary.pending, cls: 'pending' },
             { label: 'Pass Rate', value: `${summary.passPercent}%` },
             { label: 'Fail Rate', value: `${summary.failPercent}%` },
-          ].map(({ label, value, cls }) => (
-            <div key={label} className={`metric-card ${cls || ''}`}>
-              <div className="metric-label">{label}</div>
-              <div className="metric-value">{value}</div>
-            </div>
-          ))}
-        </div>
+          ]}
+        />
       )}
     </div>
   );

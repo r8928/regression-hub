@@ -1,21 +1,21 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useModules } from '@/hooks/useSharedData';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 export default function ModulesPage() {
-  const [modules, setModules] = useState([]);
+  const { data: modules = [], isLoading: modulesLoading } = useModules();
   const [moduleGroupsById, setModuleGroupsById] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [dashLoading, setDashLoading] = useState(true);
+  const loading = modulesLoading || dashLoading;
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/modules').then((r) => r.json()),
-      fetch('/api/dashboard').then((r) => r.json()),
-    ]).then(([mods, dash]) => {
-      setModules(Array.isArray(mods) ? mods : []);
+    fetch('/api/dashboard').then((r) => r.json()).then((dash) => {
       setModuleGroupsById(dash.moduleGroupsById || {});
-      setLoading(false);
-    }).catch(() => setLoading(false));
+      setDashLoading(false);
+    }).catch(() => setDashLoading(false));
   }, []);
 
   const grouped = modules.reduce((acc, mod) => {
@@ -29,22 +29,14 @@ export default function ModulesPage() {
 
   return (
     <div>
-      <div className="page-header">
-        <div className="page-eyebrow">Registry</div>
-        <h1 className="page-title">Modules</h1>
-        <p className="page-sub">
-          {modules.length} modules across {appNames.length} application{appNames.length !== 1 ? 's' : ''}
-        </p>
-      </div>
+      <PageHeader eyebrow="Registry" title="Modules" sub={`${modules.length} modules across ${appNames.length} application${appNames.length !== 1 ? 's' : ''}`} />
 
       {loading ? (
-        <div className="empty-state">Loading…</div>
+        <EmptyState>Loading…</EmptyState>
       ) : modules.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: 32, marginBottom: 8 }}>⊞</div>
-          <strong>No modules yet</strong>
+        <EmptyState icon="⊞" title="No modules yet">
           <p>Modules are created automatically from the Module column in your Excel file.</p>
-        </div>
+        </EmptyState>
       ) : (
         <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
           {appNames.map((appName) => {

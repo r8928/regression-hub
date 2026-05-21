@@ -1,39 +1,33 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useApplications } from '@/hooks/useSharedData';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 export default function ApplicationsPage() {
-  const [apps, setApps] = useState([]);
+  const { data: apps = [], isLoading: appsLoading } = useApplications();
   const [appGroups, setAppGroups] = useState({});
-  const [loading, setLoading] = useState(true);
+  const [dashLoading, setDashLoading] = useState(true);
+  const loading = appsLoading || dashLoading;
 
   useEffect(() => {
-    Promise.all([
-      fetch('/api/applications').then((r) => r.json()),
-      fetch('/api/dashboard').then((r) => r.json()),
-    ]).then(([appsData, dash]) => {
-      setApps(Array.isArray(appsData) ? appsData : []);
+    fetch('/api/dashboard').then((r) => r.json()).then((dash) => {
       setAppGroups(dash.appGroups || {});
-      setLoading(false);
-    }).catch(() => setLoading(false));
+      setDashLoading(false);
+    }).catch(() => setDashLoading(false));
   }, []);
 
   return (
     <div>
-      <div className="page-header">
-        <div className="page-eyebrow">Registry</div>
-        <h1 className="page-title">Applications</h1>
-        <p className="page-sub">Auto-created from imported Excel files. {apps.length} total.</p>
-      </div>
+      <PageHeader eyebrow="Registry" title="Applications" sub={`Auto-created from imported Excel files. ${apps.length} total.`} />
 
       {loading ? (
-        <div className="empty-state">Loading…</div>
+        <EmptyState>Loading…</EmptyState>
       ) : apps.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: 32, marginBottom: 8 }}>▣</div>
-          <strong>No applications yet</strong>
+        <EmptyState icon="▣" title="No applications yet">
           <p>Applications are created automatically when you import an Excel file.</p>
-        </div>
+        </EmptyState>
       ) : (
         <div className="grid-3">
           {apps.map((app) => {

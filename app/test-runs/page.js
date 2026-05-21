@@ -3,6 +3,10 @@
 import { useState, useEffect } from 'react';
 import ToastProvider, { showToast } from '@/components/Toast';
 import { normalizedStatus, dateStamp } from '@/utils/formatters';
+import { buildModuleMap } from '@/utils/buildModuleMap';
+import { loadPdf, drawPdfPageHeader } from '@/utils/pdfHelpers';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
 
 export default function TestRunsPage() {
   const [runs, setRuns] = useState([]);
@@ -22,14 +26,11 @@ export default function TestRunsPage() {
       const cases = await res.json();
       if (!cases.length) { showToast('No test cases for this run', 'info'); return; }
 
-      const jsPDFModule = await import('jspdf');
-      const jsPDF = jsPDFModule.jsPDF ?? jsPDFModule.default;
-      const autoTableModule = await import('jspdf-autotable');
-      const autoTable = autoTableModule.default ?? autoTableModule.autoTable;
+      const { jsPDF, autoTable } = await loadPdf();
 
       const doc = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const W = doc.internal.pageSize.width;
-      const ML = 36, MR = 36, CW = W - ML - MR;
+      const ML = 36, MR = 36;
 
       const total   = cases.length;
       const passed  = cases.filter((t) => normalizedStatus(t.status) === 'Pass').length;
@@ -37,10 +38,7 @@ export default function TestRunsPage() {
       const pending = total - passed - failed;
 
       // Header
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, W, 100, 'F');
-      doc.setFillColor(13, 148, 136);
-      doc.rect(0, 0, W, 4, 'F');
+      drawPdfPageHeader(doc, { width: W, height: 100, accentHeight: 4 });
       doc.setTextColor(255, 255, 255);
       doc.setFontSize(20); doc.setFont('helvetica', 'bold');
       doc.text('Regression Testing Report', ML, 46);
@@ -59,17 +57,7 @@ export default function TestRunsPage() {
       y += 14;
       doc.text(`Imported: ${new Date(run.createdAt).toLocaleString()}`, ML, y);
 
-      // Module groups
-      const moduleMap = {};
-      cases.forEach((tc) => {
-        const key = `${tc.moduleId || tc.moduleName}`;
-        if (!moduleMap[key]) moduleMap[key] = { module: tc.moduleName || '—', app: tc.applicationName || '—', total: 0, pass: 0, fail: 0, pending: 0 };
-        moduleMap[key].total++;
-        const st = normalizedStatus(tc.status);
-        if (st === 'Pass') moduleMap[key].pass++;
-        else if (st === 'Fail') moduleMap[key].fail++;
-        else moduleMap[key].pending++;
-      });
+      const moduleRows = buildModuleMap(cases);
 
       y += 24;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
@@ -79,7 +67,7 @@ export default function TestRunsPage() {
       autoTable(doc, {
         startY: y + 8,
         head: [['Module', 'Application', 'Total', 'Pass', 'Fail', 'Pending', 'Pass Rate']],
-        body: Object.values(moduleMap).sort((a, b) => a.module.localeCompare(b.module)).map((m) => {
+        body: moduleRows.map((m) => {
           const pct = m.total ? Math.round((m.pass / m.total) * 100) : 0;
           return [m.module, m.app, m.total, m.pass, m.fail, m.pending, `${pct}%`];
         }),
@@ -99,10 +87,7 @@ export default function TestRunsPage() {
       const failedCases = cases.filter((t) => normalizedStatus(t.status) === 'Fail');
       if (failedCases.length) {
         doc.addPage();
-        doc.setFillColor(15, 23, 42);
-        doc.rect(0, 0, W, 32, 'F');
-        doc.setFillColor(220, 38, 38);
-        doc.rect(0, 0, W, 3, 'F');
+        drawPdfPageHeader(doc, { width: W, height: 32, accentHeight: 3, accent: [220, 38, 38] });
         doc.setTextColor(255, 255, 255);
         doc.setFontSize(13); doc.setFont('helvetica', 'bold');
         doc.text('Failed Test Cases', ML, 22);
@@ -136,20 +121,14 @@ export default function TestRunsPage() {
   return (
     <div>
       <ToastProvider />
-      <div className="page-header">
-        <div className="page-eyebrow">History</div>
-        <h1 className="page-title">Test Runs</h1>
-        <p className="page-sub">Each Excel import creates a new test run. {runs.length} total.</p>
-      </div>
+      <PageHeader eyebrow="History" title="Test Runs" sub={`Each Excel import creates a new test run. ${runs.length} total.`} />
 
       {loading ? (
-        <div className="empty-state">Loading…</div>
+        <EmptyState>Loading…</EmptyState>
       ) : runs.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: 32, marginBottom: 8 }}>⟳</div>
-          <strong>No test runs yet</strong>
+        <EmptyState icon="⟳" title="No test runs yet">
           <p>Each Excel file you import will appear here as a test run.</p>
-        </div>
+        </EmptyState>
       ) : (
         <div className="panel">
           <table>

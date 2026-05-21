@@ -1,5 +1,5 @@
 import * as XLSX from 'xlsx';
-import { canonicalColumn, normalizeHeader } from './canonicalColumn';
+import { canonicalColumn } from './canonicalColumn';
 
 const REQUIRED_COLUMNS = ['Module', 'Test Case ID', 'Test Case', 'Expected Result'];
 

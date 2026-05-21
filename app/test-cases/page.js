@@ -1,23 +1,21 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { useSession } from 'next-auth/react';
 import ToastProvider, { showToast } from '@/components/Toast';
 import { normalizedStatus, toDateInputValue, dateStamp } from '@/utils/formatters';
 import RichTextEditor, { RichTextDisplay } from '@/components/RichTextEditor';
+import Modal from '@/components/Modal';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
+import { priorityBadgeStyle } from '@/components/PriorityBadge';
+import { useQaUsers } from '@/hooks/useSharedData';
 
 function statusClass(status) {
   if (status === 'Pass') return 'pass';
   if (status === 'Fail') return 'fail';
   return 'pending';
-}
-
-function priorityBadgeStyle(priority) {
-  if (priority === 'High')   return { background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', fontWeight: 600 };
-  if (priority === 'Medium') return { background: '#fffbeb', color: '#d97706', border: '1px solid #fde68a', fontWeight: 600 };
-  if (priority === 'Low')    return { background: '#f0fdf4', color: '#16a34a', border: '1px solid #bbf7d0', fontWeight: 600 };
-  return {};
 }
 
 const EMPTY_FORM = {
@@ -29,7 +27,7 @@ const EMPTY_FORM = {
 
 const PAGE_SIZE = 50;
 
-export default function TestCasesPage() {
+function TestCasesPage() {
   const { data: session } = useSession();
   const isAdmin = session?.user?.role === 'admin';
 
@@ -67,7 +65,7 @@ export default function TestCasesPage() {
   const [assignForm, setAssignForm] = useState({ assignedTo: '', priority: 'Medium', dueDate: '', notes: '', title: '' });
   const [assignSaving, setAssignSaving] = useState(false);
 
-  const [qaUsers, setQaUsers] = useState([]);
+  const qaUsers = useQaUsers();
 
   // Bulk fill
   const [bStatus, setBStatus] = useState('');
@@ -113,7 +111,6 @@ export default function TestCasesPage() {
           prev.length ? prev.map((tc) => ({ ...tc, softwareVersionTested: ver })) : prev
         );
       }
-      if (settings.qaUsers?.length) setQaUsers(settings.qaUsers);
     }).catch(() => {});
   }, []);
 
@@ -224,7 +221,7 @@ export default function TestCasesPage() {
         tc._id === id ? { ...tc, [field]: value, ...extra } : tc
       ));
       showToast('Saved', 'success', 1200);
-    } catch (e) {
+    } catch {
       showToast('Save failed', 'error');
     } finally {
       setSaving((s) => ({ ...s, [id]: false }));
@@ -451,260 +448,6 @@ export default function TestCasesPage() {
     showToast('All data cleared', 'info');
   }
 
-  async function exportExcel() {
-    try {
-      const params = new URLSearchParams();
-      if (fApp)        params.set('applicationId', fApp);
-      if (fMod)        params.set('moduleId', fMod);
-      if (fStatus)     params.set('status', fStatus);
-      if (fTester)     params.set('testedBy', fTester);
-      if (fVersion)    params.set('version', fVersion);
-      if (fPriority)   params.set('priority', fPriority);
-      if (fJiraStory)  params.set('jiraStory', fJiraStory);
-      params.set('limit', '10000');
-      const res = await fetch(`/api/test-cases?${params}`);
-      const { data: allCases } = await res.json();
-
-      const { utils, writeFile } = await import('xlsx');
-      const rows = allCases.map((tc) => ({
-        'Platform/Application': tc.applicationName,
-        'Module': tc.moduleName,
-        'Priority': tc.priority || '',
-        'Type': tc.type,
-        'Jira Story': tc.jiraStory || '',
-        'Traceability': tc.traceability,
-        'Test Case ID': tc.testCaseId,
-        'Test Case': tc.testCase,
-        'Preconditions': tc.preconditions,
-        'Steps': tc.steps,
-        'Expected Result': tc.expectedResult,
-        'Actual Result': tc.actualResult,
-        'Status': normalizedStatus(tc.status),
-        'Defects/Improvements': tc.defectsImprovements,
-        'Tested By': tc.testedBy,
-        'Tested On': tc.testedOn,
-        'Software Version Tested': tc.softwareVersionTested,
-      }));
-      const ws = utils.json_to_sheet(rows);
-      ws['!cols'] = [22,18,10,12,14,14,14,24,18,18,24,24,10,24,12,14,18].map((wch) => ({ wch }));
-      const wb = utils.book_new();
-      utils.book_append_sheet(wb, ws, 'Regression Results');
-      writeFile(wb, `regression-results-${dateStamp()}.xlsx`);
-      showToast('Excel exported', 'success');
-    } catch (e) {
-      showToast('Excel export failed', 'error');
-    }
-  }
-
-  async function exportPdf() {
-    try {
-      const params = new URLSearchParams();
-      if (fApp)    params.set('applicationId', fApp);
-      if (fMod)    params.set('moduleId', fMod);
-      if (fStatus) params.set('status', fStatus);
-      if (fTester) params.set('testedBy', fTester);
-      if (fVersion) params.set('version', fVersion);
-      if (fPriority) params.set('priority', fPriority);
-      if (fJiraStory) params.set('jiraStory', fJiraStory);
-      params.set('limit', '10000');
-      const res = await fetch(`/api/test-cases?${params}`);
-      const { data: allCases } = await res.json();
-
-      const { default: jsPDF } = await import('jspdf');
-      const { autoTable } = await import('jspdf-autotable');
-      const doc = new jsPDF({ orientation: 'landscape', unit: 'pt', format: 'a4' });
-      const pw = doc.internal.pageSize.width;
-      const ph = doc.internal.pageSize.height;
-
-      function drawDonut(cx, cy, outerR, innerR, pass, fail, pend) {
-        const tot = pass + fail + pend;
-        if (!tot) {
-          doc.setFillColor(226, 232, 240);
-          doc.circle(cx, cy, outerR, 'F');
-          doc.setFillColor(255, 255, 255);
-          doc.circle(cx, cy, innerR, 'F');
-          return;
-        }
-        const segs = [
-          { count: pass, color: [22, 163, 74] },
-          { count: fail, color: [220, 38, 38] },
-          { count: pend, color: [217, 119, 6] },
-        ].filter((s) => s.count > 0);
-
-        let a0 = -Math.PI / 2;
-        for (const seg of segs) {
-          const sweep = (seg.count / tot) * 2 * Math.PI;
-          const a1 = a0 + sweep;
-          const steps = Math.max(6, Math.ceil(sweep * 18));
-          const sx = cx + outerR * Math.cos(a0);
-          const sy = cy + outerR * Math.sin(a0);
-          const lines = [];
-          let px = sx, py = sy;
-          for (let i = 1; i <= steps; i++) {
-            const a = a0 + sweep * i / steps;
-            const nx = cx + outerR * Math.cos(a); const ny = cy + outerR * Math.sin(a);
-            lines.push([nx - px, ny - py]); px = nx; py = ny;
-          }
-          for (let i = steps; i >= 0; i--) {
-            const a = a0 + sweep * i / steps;
-            const nx = cx + innerR * Math.cos(a); const ny = cy + innerR * Math.sin(a);
-            lines.push([nx - px, ny - py]); px = nx; py = ny;
-          }
-          doc.setFillColor(...seg.color);
-          doc.lines(lines, sx, sy, [1, 1], 'F', true);
-          a0 = a1;
-        }
-        doc.setFillColor(255, 255, 255);
-        doc.circle(cx, cy, innerR, 'F');
-      }
-
-      const total = allCases.length;
-      const pass  = allCases.filter((t) => normalizedStatus(t.status) === 'Pass').length;
-      const fail  = allCases.filter((t) => normalizedStatus(t.status) === 'Fail').length;
-      const pend  = allCases.filter((t) => normalizedStatus(t.status) === 'Pending').length;
-      const pct   = total ? Math.round((pass / total) * 100) : 0;
-
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, pw, 80, 'F');
-      doc.setFillColor(13, 148, 136);
-      doc.rect(0, 0, pw, 4, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(22); doc.setFont('helvetica', 'bold');
-      doc.text('Regression Testing Signoff Report', 36, 38);
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-      doc.text(`Generated: ${new Date().toLocaleString()}`, 36, 58);
-      doc.text(`Total: ${total}  |  Passed: ${pass}  |  Failed: ${fail}  |  Pending: ${pend}  |  Pass Rate: ${pct}%`, 36, 72);
-
-      drawDonut(pw / 2, 190, 86, 46, pass, fail, pend);
-
-      const legendY = 292;
-      const legendItems = [
-        [22, 163, 74, `Passed  ${pass}`, pass],
-        [220, 38, 38, `Failed  ${fail}`, fail],
-        [217, 119, 6, `Pending  ${pend}`, pend],
-      ].filter(([,,,,c]) => c > 0);
-      legendItems.forEach(([r, g, b, label], i) => {
-        const lx = pw / 2 - (legendItems.length * 88) / 2 + i * 88;
-        doc.setFillColor(r, g, b); doc.rect(lx, legendY, 10, 10, 'F');
-        doc.setTextColor(23, 32, 42); doc.setFontSize(9);
-        doc.text(label, lx + 14, legendY + 9);
-      });
-
-      const appNames = [...new Set(allCases.map((t) => t.applicationName))].sort();
-
-      for (const appName of appNames) {
-        doc.addPage();
-        const appCases = allCases.filter((t) => t.applicationName === appName);
-        const ap  = appCases.filter((t) => normalizedStatus(t.status) === 'Pass').length;
-        const af  = appCases.filter((t) => normalizedStatus(t.status) === 'Fail').length;
-        const apd = appCases.filter((t) => normalizedStatus(t.status) === 'Pending').length;
-        const at  = appCases.length;
-        const apct = at ? Math.round((ap / at) * 100) : 0;
-
-        doc.setFillColor(15, 23, 42);
-        doc.rect(0, 0, pw, 36, 'F');
-        doc.setFillColor(13, 148, 136);
-        doc.rect(0, 0, pw, 3, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(15); doc.setFont('helvetica', 'bold');
-        doc.text(appName, 36, 24);
-        doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-        doc.text(`${at} test cases  ·  ${apct}% pass rate`, pw - 36, 24, { align: 'right' });
-
-        const dCx = 96, dCy = 104;
-        drawDonut(dCx, dCy, 54, 29, ap, af, apd);
-
-        const sx = 166, sy = 58;
-        doc.setFontSize(10);
-        doc.setTextColor(22, 163, 74);  doc.text(`● Passed   ${ap}`, sx, sy);
-        doc.setTextColor(220, 38, 38);  doc.text(`● Failed   ${af}`, sx, sy + 18);
-        doc.setTextColor(217, 119, 6);  doc.text(`● Pending  ${apd}`, sx, sy + 36);
-        doc.setTextColor(23, 32, 42);
-        doc.setFont('helvetica', 'bold');   doc.text(`${apct}% Pass Rate`, sx, sy + 58);
-        doc.setFont('helvetica', 'normal'); doc.text(`${at} total cases`, sx, sy + 74);
-
-        const modMap = {};
-        for (const tc of appCases) {
-          if (!modMap[tc.moduleName]) modMap[tc.moduleName] = { p: 0, f: 0, d: 0 };
-          const s = normalizedStatus(tc.status);
-          modMap[tc.moduleName][s === 'Pass' ? 'p' : s === 'Fail' ? 'f' : 'd']++;
-        }
-        const modRows = Object.entries(modMap)
-          .sort(([a], [b]) => a.localeCompare(b))
-          .map(([mod, s]) => {
-            const tot = s.p + s.f + s.d;
-            return [mod, tot, s.p, s.f, s.d, `${tot ? Math.round((s.p / tot) * 100) : 0}%`];
-          });
-
-        autoTable(doc, {
-          startY: 172,
-          head: [['Module', 'Total', 'Pass', 'Fail', 'Pending', 'Pass Rate']],
-          body: modRows,
-          styles: { fontSize: 8, cellPadding: 4 },
-          headStyles: { fillColor: [30, 41, 59], textColor: 255 },
-          columnStyles: {
-            1: { halign: 'center', cellWidth: 50 },
-            2: { halign: 'center', cellWidth: 50, textColor: [22, 163, 74], fontStyle: 'bold' },
-            3: { halign: 'center', cellWidth: 50, textColor: [220, 38, 38], fontStyle: 'bold' },
-            4: { halign: 'center', cellWidth: 60, textColor: [217, 119, 6], fontStyle: 'bold' },
-            5: { halign: 'center', cellWidth: 70 },
-          },
-          theme: 'striped',
-        });
-
-        const failedCases = appCases.filter((t) => normalizedStatus(t.status) === 'Fail');
-        if (failedCases.length) {
-          let dy = (doc.lastAutoTable?.finalY || 300) + 20;
-          if (dy + 60 > ph - 20) { doc.addPage(); dy = 36; }
-
-          doc.setFillColor(153, 27, 27);
-          doc.rect(0, dy, pw, 22, 'F');
-          doc.setTextColor(255, 255, 255);
-          doc.setFontSize(10); doc.setFont('helvetica', 'bold');
-          doc.text(
-            `Defects Summary  —  ${failedCases.length} failure${failedCases.length !== 1 ? 's' : ''}`,
-            36, dy + 15,
-          );
-
-          autoTable(doc, {
-            startY: dy + 26,
-            head: [['Module', 'Test Case ID', 'Defect / Issue']],
-            body: failedCases.map((t) => [
-              t.moduleName || '—',
-              t.testCaseId || '—',
-              t.defectsImprovements || t.actualResult || '—',
-            ]),
-            styles: { fontSize: 8, cellPadding: 5, overflow: 'linebreak' },
-            headStyles: { fillColor: [153, 27, 27], textColor: 255 },
-            columnStyles: { 0: { cellWidth: 150 }, 1: { cellWidth: 90 } },
-            theme: 'grid',
-          });
-        }
-      }
-
-      doc.addPage();
-      doc.setFillColor(15, 23, 42);
-      doc.rect(0, 0, pw, 32, 'F');
-      doc.setFillColor(13, 148, 136);
-      doc.rect(0, 0, pw, 3, 'F');
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-      doc.text('Signoff', 36, 22);
-      doc.setTextColor(23, 32, 42);
-      doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-      doc.text('QA Lead: ___________________________________', 36, 80);
-      doc.text('Product Owner: ________________________________', 300, 80);
-      doc.text('Date: _______________________________', 580, 80);
-
-      const fileName = `regression-signoff-${dateStamp()}.pdf`;
-      doc.save(fileName);
-      showToast(`PDF exported: ${fileName}`, 'success');
-    } catch (e) {
-      console.error(e);
-      showToast('PDF export failed', 'error');
-    }
-  }
-
   async function assignTestCases(e) {
     e.preventDefault();
     if (!assignForm.assignedTo) { showToast('Select an assignee', 'info'); return; }
@@ -750,19 +493,19 @@ export default function TestCasesPage() {
       <ToastProvider />
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 20, gap: 12, flexWrap: 'wrap' }}>
-        <div className="page-header" style={{ marginBottom: 0 }}>
-          <div className="page-eyebrow">Data Grid</div>
-          <h1 className="page-title">Test Cases</h1>
-          <p className="page-sub">{loading ? 'Loading…' : `${totalCount} rows`}</p>
-        </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>+ Add Test Case</button>
-          {isAdmin && (
-            <button className="btn btn-danger btn-sm" onClick={clearAll}>Clear All Data</button>
-          )}
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Data Grid"
+        title="Test Cases"
+        sub={loading ? 'Loading…' : `${totalCount} rows`}
+        actions={
+          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>+ Add Test Case</button>
+            {isAdmin && (
+              <button className="btn btn-danger btn-sm" onClick={clearAll}>Clear All Data</button>
+            )}
+          </div>
+        }
+      />
 
       {/* Bulk Fill */}
       <div className="panel" style={{ marginBottom: 16 }}>
@@ -1036,13 +779,11 @@ export default function TestCasesPage() {
       <div className="panel">
         <div className="table-wrap">
           {loading ? (
-            <div className="empty-state">Loading test cases…</div>
+            <EmptyState>Loading test cases…</EmptyState>
           ) : totalCount === 0 ? (
-            <div className="empty-state">
-              <div style={{ fontSize: 32, marginBottom: 8 }}>◎</div>
-              <strong>No test cases found</strong>
+            <EmptyState icon="◎" title="No test cases found">
               <p>Import an Excel file from the Dashboard to populate the grid.</p>
-            </div>
+            </EmptyState>
           ) : (
             <table>
               <thead>
@@ -1105,21 +846,8 @@ export default function TestCasesPage() {
 
       {/* Add Test Case Modal */}
       {showAddModal && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: 20,
-        }} onClick={(e) => { if (e.target === e.currentTarget) { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); } }}>
-          <div style={{
-            background: '#ffffff', borderRadius: 12, width: '100%', maxWidth: 720,
-            maxHeight: '90vh', overflow: 'auto',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.25)',
-          }}>
-            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Add Test Case</h2>
-              <button onClick={() => { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--muted)', lineHeight: 1 }}>×</button>
-            </div>
-            <form onSubmit={addTestCase} style={{ padding: 24 }}>
+        <Modal title="Add Test Case" onClose={() => { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); }} maxWidth={720} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
+          <form onSubmit={addTestCase}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
                 <div className="field-group">
                   <label className="field-label">Application *</label>
@@ -1272,31 +1000,14 @@ export default function TestCasesPage() {
                   {addSaving ? 'Saving…' : 'Add Test Case'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
 
       {/* Edit Test Case Modal */}
       {editTc && (
-        <div style={{
-          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-          zIndex: 1000, padding: 20,
-        }} onClick={(e) => { if (e.target === e.currentTarget) setEditTc(null); }}>
-          <div style={{
-            background: '#ffffff', borderRadius: 12, width: '100%', maxWidth: 800,
-            maxHeight: '90vh', overflow: 'auto',
-            boxShadow: '0 24px 48px rgba(0,0,0,0.25)',
-          }}>
-            <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <div>
-                <h2 style={{ margin: 0, fontSize: 16, fontWeight: 700 }}>Edit Test Case</h2>
-                {editTc.testCaseId && <p style={{ margin: '2px 0 0', fontSize: 12, color: 'var(--muted)' }}>{editTc.testCaseId}</p>}
-              </div>
-              <button onClick={() => setEditTc(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--muted)', lineHeight: 1 }}>×</button>
-            </div>
-            <form onSubmit={saveEdit} style={{ padding: 24 }}>
+        <Modal title={<>{editTc.testCaseId && <span style={{ fontSize: 12, color: 'var(--muted)', display: 'block', fontWeight: 400 }}>{editTc.testCaseId}</span>}Edit Test Case</>} onClose={() => setEditTc(null)} maxWidth={800} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
+          <form onSubmit={saveEdit}>
               {/* Application, Module, Priority, Jira Story */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
                 <div className="field-group">
@@ -1441,23 +1152,14 @@ export default function TestCasesPage() {
                   {editSaving ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
 
       {/* Assign Selected Modal */}
       {showAssignModal && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
-          onClick={(e) => { if (e.target === e.currentTarget) setShowAssignModal(false); }}
-        >
-          <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 460, boxShadow: '0 24px 48px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
-            <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h3 style={{ margin: 0, fontSize: 16 }}>Assign {selectedIds.size} Test Case{selectedIds.size !== 1 ? 's' : ''}</h3>
-              <button onClick={() => setShowAssignModal(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--muted)', lineHeight: 1 }}>×</button>
-            </div>
-            <form onSubmit={assignTestCases} style={{ padding: '18px 20px', display: 'grid', gap: 14 }}>
+        <Modal title={`Assign ${selectedIds.size} Test Case${selectedIds.size !== 1 ? 's' : ''}`} onClose={() => setShowAssignModal(false)} maxWidth={460}>
+          <form onSubmit={assignTestCases} style={{ display: 'grid', gap: 14 }}>
               <div className="field-group">
                 <label className="field-label">Title <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
                 <input
@@ -1520,9 +1222,8 @@ export default function TestCasesPage() {
                   {assignSaving ? 'Assigning…' : `Assign to ${assignForm.assignedTo || '…'}`}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
     </div>
   );
@@ -1658,5 +1359,13 @@ function TestCaseRow({ tc, rowNum, saving, onSave, onEdit, selected, onToggle, q
         >✎</button>
       </td>
     </tr>
+  );
+}
+
+export default function TestCasesPageRoot() {
+  return (
+    <Suspense>
+      <TestCasesPage />
+    </Suspense>
   );
 }

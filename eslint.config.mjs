@@ -11,6 +11,7 @@ const config = [
   {
     ignores: [
       ".next/**",
+      ".claude/**",
       "node_modules/**",
       "public/**",
       "next-env.d.ts",

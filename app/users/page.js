@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ToastProvider, { showToast } from '@/components/Toast';
+import Modal from '@/components/Modal';
+import PageHeader from '@/components/PageHeader';
 
 const ROLE_STYLE = {
   admin: { bg: 'rgba(13,148,136,0.12)', border: 'rgba(13,148,136,0.4)', color: '#0d9488', label: 'Admin' },
@@ -183,21 +185,13 @@ export default function UsersPage() {
       <ToastProvider />
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div className="page-header" style={{ marginBottom: 0 }}>
-          <div className="page-eyebrow">Admin</div>
-          <h1 className="page-title">User Management</h1>
-          <p className="page-sub" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: locationStyle.bg, border: `1px solid ${locationStyle.border}`, color: locationStyle.color }}>
-              {locationStyle.label}
-            </span>
-            {activeUsers.length} active · {inactiveUsers.length} inactive
-          </p>
-        </div>
-        <button className="btn btn-primary" onClick={() => { setAddForm(EMPTY_FORM); setShowAdd(true); }}>
-          + Add User
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Admin"
+        title="User Management"
+        sub={<><span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: locationStyle.bg, border: `1px solid ${locationStyle.border}`, color: locationStyle.color }}>{locationStyle.label}</span>{activeUsers.length} active · {inactiveUsers.length} inactive</>}
+        subStyle={{ display: 'flex', alignItems: 'center', gap: 8 }}
+        actions={<button className="btn btn-primary" onClick={() => { setAddForm(EMPTY_FORM); setShowAdd(true); }}>+ Add User</button>}
+      />
 
       {/* Role permissions info */}
       <div className="panel" style={{ marginBottom: 20, background: 'linear-gradient(135deg, rgba(13,148,136,0.04), rgba(8,145,178,0.04))', border: '1px solid rgba(13,148,136,0.15)' }}>
@@ -408,7 +402,7 @@ export default function UsersPage() {
               </div>
             </div>
             <div style={{ padding: '10px 14px', background: 'rgba(13,148,136,0.06)', borderRadius: 8, border: '1px solid rgba(13,148,136,0.2)', fontSize: 12, color: 'var(--muted)' }}>
-              This user will be added to the <strong style={{ color: 'var(--fg)' }}>{session.user.teamName}</strong> location and can only see that location's data.
+              This user will be added to the <strong style={{ color: 'var(--fg)' }}>{session.user.teamName}</strong> location and can only see that location&apos;s data.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
               <button type="button" className="btn btn-secondary" onClick={() => { setShowAdd(false); setAddForm(EMPTY_FORM); }}>Cancel</button>
@@ -441,23 +435,6 @@ export default function UsersPage() {
           </div>
         </Modal>
       )}
-    </div>
-  );
-}
-
-function Modal({ title, children, onClose }) {
-  return (
-    <div
-      style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
-      onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
-    >
-      <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 500, boxShadow: '0 24px 48px rgba(0,0,0,0.25)', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h3 style={{ margin: 0, fontSize: 16 }}>{title}</h3>
-          <button onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--muted)', lineHeight: 1 }}>×</button>
-        </div>
-        <div style={{ padding: '20px' }}>{children}</div>
-      </div>
     </div>
   );
 }

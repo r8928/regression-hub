@@ -26,6 +26,17 @@ npm run lint        # report violations
 npm run lint:fix    # auto-fix what can be fixed
 ```
 
+## Testing
+
+Vitest + React Testing Library. Tests live in `__tests__/` directories colocated next to source files (e.g. `utils/__tests__/buildModuleMap.test.js`, `components/__tests__/Modal.test.jsx`).
+
+```bash
+npm test          # run all tests once
+npm run test:watch  # re-run on file change
+```
+
+Every shared module in `utils/`, `hooks/`, and `components/` must ship with a test. Tests for React components use RTL; tests for pure utility functions use plain assertions. Mock only what is unavoidable (e.g. dynamic imports of third-party libs).
+
 ## Deploy to Vercel
 
 1. Push the repo to GitHub.

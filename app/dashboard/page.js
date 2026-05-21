@@ -5,6 +5,9 @@ import { useSession } from 'next-auth/react';
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
 import UploadExcel from '@/components/UploadExcel';
 import ToastProvider from '@/components/Toast';
+import PageHeader from '@/components/PageHeader';
+import MetricCards from '@/components/MetricCards';
+import SummaryRow from '@/components/SummaryRow';
 import { useSettings } from '@/hooks/useSharedData';
 
 const COLORS = { Pass: '#16a34a', Fail: '#dc2626', Pending: '#d97706' };
@@ -50,45 +53,30 @@ export default function DashboardPage() {
   return (
     <div>
       <ToastProvider />
-      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <div>
-          <div className="page-eyebrow">QA Regression Control Center</div>
-          <h1 className="page-title">Dashboard</h1>
-          <p className="page-sub">Live metrics across all imported test runs</p>
-        </div>
-        {latestVersion && (
-          <div style={{
-            display: 'flex', alignItems: 'center', gap: 8,
-            background: 'var(--surface-2)', border: '1px solid var(--line)',
-            borderRadius: 8, padding: '8px 14px', fontSize: 13,
-          }}>
+      <PageHeader
+        eyebrow="QA Regression Control Center"
+        title="Dashboard"
+        sub="Live metrics across all imported test runs"
+        actions={latestVersion ? (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
             <span style={{ color: 'var(--muted)', fontWeight: 500 }}>Current Version</span>
-            <span style={{
-              background: 'rgba(13,148,136,0.12)', border: '1px solid rgba(13,148,136,0.4)',
-              borderRadius: 6, padding: '2px 10px', fontWeight: 700,
-              color: '#0d9488', fontFamily: 'var(--font-mono)', fontSize: 13,
-            }}>{latestVersion}</span>
+            <span style={{ background: 'rgba(13,148,136,0.12)', border: '1px solid rgba(13,148,136,0.4)', borderRadius: 6, padding: '2px 10px', fontWeight: 700, color: '#0d9488', fontFamily: 'var(--font-mono)', fontSize: 13 }}>{latestVersion}</span>
           </div>
-        )}
-      </div>
+        ) : undefined}
+      />
 
       {/* Metric cards */}
-      <div className="metric-grid">
-        {[
+      <MetricCards
+        loading={loading}
+        cards={[
           { label: 'Total Test Cases', value: summary.total, sub: 'All imported' },
           { label: 'Passed', value: summary.passed, cls: 'pass', sub: 'Validated' },
           { label: 'Failed', value: summary.failed, cls: 'fail', sub: 'Needs attention' },
           { label: 'Pending', value: summary.pending, cls: 'pending', sub: 'Awaiting result' },
           { label: 'Pass Rate', value: `${summary.passPercent}%`, sub: 'Of total' },
           { label: 'Fail Rate', value: `${summary.failPercent}%`, sub: 'Of total' },
-        ].map(({ label, value, cls, sub }) => (
-          <div key={label} className={`metric-card ${cls || ''}`}>
-            <div className="metric-label">{label}</div>
-            <div className="metric-value">{loading ? '—' : value}</div>
-            <div className="metric-sub">{sub}</div>
-          </div>
-        ))}
-      </div>
+        ]}
+      />
 
       {/* Charts + Tester summary row */}
       <div className="grid-2" style={{ marginBottom: 20 }}>
@@ -116,19 +104,7 @@ export default function DashboardPage() {
           {Object.keys(data?.testerGroups || {}).length ? (
             <div>
               {Object.entries(data.testerGroups).sort(([, a], [, b]) => b.total - a.total).map(([name, g]) => (
-                <div key={name} className="summary-row">
-                  <div className="summary-name" style={{ fontSize: 13 }}>{name || 'Unassigned'}</div>
-                  <div className="summary-meta">
-                    <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600 }}>{g.passed} Pass</span>
-                    <span style={{ background: '#fee2e2', color: '#b91c1c', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600 }}>{g.failed} Fail</span>
-                    <span style={{ background: '#fef3c7', color: '#b45309', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600 }}>{g.pending} Pending</span>
-                  </div>
-                  <div className="summary-bar-wrap">
-                    <div className="progress-bar">
-                      <div className="progress-bar-fill" style={{ width: `${g.total ? Math.round((g.passed / g.total) * 100) : 0}%`, background: 'var(--pass)' }} />
-                    </div>
-                  </div>
-                </div>
+                <SummaryRow key={name} name={name} passed={g.passed} failed={g.failed} pending={g.pending} total={g.total} />
               ))}
             </div>
           ) : (
@@ -174,19 +150,7 @@ export default function DashboardPage() {
             {Object.keys(groups).length ? (
               <div>
                 {Object.entries(groups).sort(([a], [b]) => a.localeCompare(b)).map(([name, g]) => (
-                  <div key={name} className="summary-row">
-                    <div className="summary-name" style={{ fontSize: 13 }}>{name || 'Unassigned'}</div>
-                    <div className="summary-meta">
-                      <span style={{ background: '#dcfce7', color: '#15803d', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600 }}>{g.passed} Pass</span>
-                      <span style={{ background: '#fee2e2', color: '#b91c1c', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600 }}>{g.failed} Fail</span>
-                      <span style={{ background: '#fef3c7', color: '#b45309', borderRadius: 4, padding: '1px 6px', fontSize: 11, fontWeight: 600 }}>{g.pending} Pending</span>
-                    </div>
-                    <div className="summary-bar-wrap">
-                      <div className="progress-bar">
-                        <div className="progress-bar-fill" style={{ width: `${g.total ? Math.round((g.passed / g.total) * 100) : 0}%`, background: 'var(--pass)' }} />
-                      </div>
-                    </div>
-                  </div>
+                  <SummaryRow key={name} name={name} passed={g.passed} failed={g.failed} pending={g.pending} total={g.total} />
                 ))}
               </div>
             ) : (

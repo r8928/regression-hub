@@ -4,31 +4,11 @@ import { useState, useEffect, useCallback } from 'react';
 import { useSession } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import ToastProvider, { showToast } from '@/components/Toast';
-
-const PRIORITY_COLOR = {
-  High:   { bg: '#fef2f2', border: '#fca5a5', text: '#dc2626' },
-  Medium: { bg: '#fffbeb', border: '#fcd34d', text: '#d97706' },
-  Low:    { bg: '#f0fdf4', border: '#86efac', text: '#16a34a' },
-};
-
-function priorityBadge(priority) {
-  const c = PRIORITY_COLOR[priority] || PRIORITY_COLOR.Medium;
-  return (
-    <span style={{
-      display: 'inline-block',
-      padding: '2px 10px',
-      borderRadius: 20,
-      fontSize: 11,
-      fontWeight: 700,
-      background: c.bg,
-      border: `1px solid ${c.border}`,
-      color: c.text,
-      letterSpacing: '0.04em',
-    }}>
-      {priority || 'Medium'}
-    </span>
-  );
-}
+import Modal from '@/components/Modal';
+import PageHeader from '@/components/PageHeader';
+import EmptyState from '@/components/EmptyState';
+import { useQaUsers, useModules } from '@/hooks/useSharedData';
+import PriorityBadge from '@/components/PriorityBadge';
 
 function ProgressBar({ completed, total }) {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -81,9 +61,9 @@ export default function AssignmentsPage() {
   const [assignments, setAssignments] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  const [modules, setModules] = useState([]);
+  const { data: modules = [] } = useModules();
   const [moduleCounts, setModuleCounts] = useState({});
-  const [qaUsers, setQaUsers] = useState([]);
+  const qaUsers = useQaUsers();
 
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -108,17 +88,6 @@ export default function AssignmentsPage() {
   useEffect(() => {
     fetchAssignments(view);
   }, [view, fetchAssignments]);
-
-  // Load modules + settings for the create modal
-  useEffect(() => {
-    Promise.all([
-      fetch('/api/modules').then((r) => r.json()),
-      fetch('/api/settings').then((r) => r.json()),
-    ]).then(([mods, settings]) => {
-      setModules(Array.isArray(mods) ? mods : []);
-      if (settings.qaUsers?.length) setQaUsers(settings.qaUsers);
-    }).catch(() => {});
-  }, []);
 
   // Load module test-case counts for the create modal
   useEffect(() => {
@@ -201,16 +170,12 @@ export default function AssignmentsPage() {
       <ToastProvider />
 
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
-        <div className="page-header" style={{ marginBottom: 0 }}>
-          <div className="page-eyebrow">Team</div>
-          <h1 className="page-title">Assignments</h1>
-          <p className="page-sub">Assign test cases and modules to team members</p>
-        </div>
-        <button className="btn btn-primary" onClick={() => { setForm(EMPTY_FORM); setShowModal(true); }}>
-          + New Assignment
-        </button>
-      </div>
+      <PageHeader
+        eyebrow="Team"
+        title="Assignments"
+        sub="Assign test cases and modules to team members"
+        actions={<button className="btn btn-primary" onClick={() => { setForm(EMPTY_FORM); setShowModal(true); }}>+ New Assignment</button>}
+      />
 
       {/* Tabs */}
       <div style={{ display: 'flex', gap: 4, marginBottom: 20, borderBottom: '1px solid var(--line)', paddingBottom: 0 }}>
@@ -241,15 +206,13 @@ export default function AssignmentsPage() {
 
       {/* Cards */}
       {loading ? (
-        <div className="empty-state">Loading…</div>
+        <EmptyState>Loading…</EmptyState>
       ) : active.length === 0 ? (
-        <div className="empty-state">
-          <div style={{ fontSize: 32, marginBottom: 8 }}>◷</div>
-          <strong>{view === 'mine' ? 'No assignments for you yet' : 'You haven\'t assigned anything yet'}</strong>
+        <EmptyState icon="◷" title={view === 'mine' ? 'No assignments for you yet' : "You haven't assigned anything yet"}>
           <p style={{ marginTop: 6, color: 'var(--muted)' }}>
             {view === 'mine' ? 'Ask a team member to assign test cases to you.' : 'Click "New Assignment" to assign a module or test cases.'}
           </p>
-        </div>
+        </EmptyState>
       ) : (
         <div style={{ display: 'grid', gap: 14 }}>
           {active.map((a) => (
@@ -294,16 +257,8 @@ export default function AssignmentsPage() {
 
       {/* Create Assignment Modal */}
       {showModal && (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
-          onClick={(e) => { if (e.target === e.currentTarget) { setShowModal(false); setForm(EMPTY_FORM); } }}
-        >
-          <div style={{ background: '#fff', borderRadius: 12, width: '100%', maxWidth: 560, maxHeight: '90vh', overflow: 'auto', boxShadow: '0 24px 48px rgba(0,0,0,0.25)' }}>
-            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--line)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <h2 style={{ margin: 0, fontSize: 18 }}>New Assignment</h2>
-              <button onClick={() => { setShowModal(false); setForm(EMPTY_FORM); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: 20, color: 'var(--muted)', lineHeight: 1 }}>×</button>
-            </div>
-            <form onSubmit={createAssignment} style={{ padding: '20px 24px' }}>
+        <Modal title="New Assignment" onClose={() => { setShowModal(false); setForm(EMPTY_FORM); }} maxWidth={560} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
+          <form onSubmit={createAssignment}>
               <div style={{ display: 'grid', gap: 16 }}>
 
                 {/* Title */}
@@ -448,15 +403,14 @@ export default function AssignmentsPage() {
                   {saving ? 'Creating…' : 'Create Assignment'}
                 </button>
               </div>
-            </form>
-          </div>
-        </div>
+          </form>
+        </Modal>
       )}
     </div>
   );
 }
 
-function AssignmentCard({ assignment: a, isMine, isSent, isEditing, editForm, onEdit, onEditChange, onSaveEdit, onCancelEdit, onCancel, onViewCases, currentUser }) {
+function AssignmentCard({ assignment: a, isMine, isSent, isEditing, editForm, onEdit, onEditChange, onSaveEdit, onCancelEdit, onCancel, onViewCases }) {
   return (
     <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
       {/* Priority stripe */}
@@ -501,7 +455,7 @@ function AssignmentCard({ assignment: a, isMine, isSent, isEditing, editForm, on
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap', marginBottom: 4 }}>
                   <span style={{ fontWeight: 700, fontSize: 15 }}>{a.title}</span>
-                  {priorityBadge(a.priority)}
+                  <PriorityBadge priority={a.priority} />
                 </div>
                 <div style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', flexWrap: 'wrap', gap: '4px 14px' }}>
                   {isMine && <span>From: <strong style={{ color: 'var(--fg)' }}>{a.assignedBy}</strong></span>}

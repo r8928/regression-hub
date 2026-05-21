@@ -3,10 +3,6 @@ import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
 
-function normalizedStatus(status) {
-  return status === 'Pass' || status === 'Fail' ? status : 'Pending';
-}
-
 export async function GET(request) {
   try {
     const session = await getServerSession(authOptions);
@@ -134,7 +130,7 @@ export async function POST(request) {
   }
 }
 
-export async function DELETE(request) {
+export async function DELETE(_request) {
   try {
     const session = await getServerSession(authOptions);
     if (!session) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
