@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, useCallback } from 'react';
 
+/** @see {@link __tests__/UploadExcel.test.jsx} */
 export default function UploadExcel({ onImported }) {
   const [dragging, setDragging] = useState(false);
   const [status, setStatus] = useState(null);

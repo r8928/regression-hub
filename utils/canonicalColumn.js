@@ -1,7 +1,9 @@
+/** @see {@link __tests__/canonicalColumn.test.js} */
 export function normalizeHeader(value) {
   return String(value || '').toLowerCase().replace(/[\s/_-]+/g, '').replace(/[^a-z0-9]/g, '');
 }
 
+/** @see {@link __tests__/canonicalColumn.test.js} */
 export function canonicalColumn(header) {
   const key = normalizeHeader(header);
   const map = {

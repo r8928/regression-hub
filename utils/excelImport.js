@@ -17,6 +17,7 @@ function looksLikeDataRow(row) {
   return Object.values(row).some((v) => normalizeText(v));
 }
 
+/** @see {@link __tests__/excelImport.test.js} */
 export function parseWorkbookBuffer(buffer, qaUsers = []) {
   const workbook = XLSX.read(buffer, { type: 'buffer', cellDates: true });
   const importedRows = [];

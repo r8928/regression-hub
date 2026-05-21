@@ -4,11 +4,13 @@ import { useState, useCallback, useEffect } from 'react';
 
 let toastListeners = [];
 
+/** @see {@link __tests__/Toast.test.jsx} */
 export function showToast(message, type = 'success', duration = 3000) {
   const id = Date.now() + Math.random();
   toastListeners.forEach((fn) => fn({ id, message, type, duration }));
 }
 
+/** @see {@link __tests__/Toast.test.jsx} */
 export default function ToastProvider() {
   const [toasts, setToasts] = useState([]);
 

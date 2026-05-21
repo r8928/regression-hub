@@ -1,6 +1,7 @@
+coverage/
 node_modules/
 .next/
 .env.local
 .claude/worktrees/
 .claude/settings.local.json
-
+debug.log

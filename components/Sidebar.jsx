@@ -24,6 +24,7 @@ const LOCATION_COLOR = {
   cb:     '#6366f1',
 };
 
+/** @see {@link __tests__/Sidebar.test.jsx} */
 export default function Sidebar() {
   const pathname = usePathname();
   const [open, setOpen] = useState(true);

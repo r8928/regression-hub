@@ -1,14 +1,17 @@
 export const QA_USERS = ['Ammad', 'Maria', 'Sohail'];
 export const STATUSES = ['', 'Pass', 'Fail'];
 
+/** @see {@link __tests__/formatters.test.js} */
 export function normalizedStatus(status) {
   return status === 'Pass' || status === 'Fail' ? status : 'Pending';
 }
 
+/** @see {@link __tests__/formatters.test.js} */
 export function dateStamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
+/** @see {@link __tests__/formatters.test.js} */
 export function toDateInputValue(value) {
   if (!value) return '';
   const d = new Date(value);
@@ -16,6 +19,7 @@ export function toDateInputValue(value) {
   return /^\d{4}-\d{2}-\d{2}$/.test(value) ? value : '';
 }
 
+/** @see {@link __tests__/formatters.test.js} */
 export function normalizeText(value) {
   if (value === null || value === undefined) return '';
   return String(value).trim();

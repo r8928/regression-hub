@@ -30,6 +30,7 @@ function ToolBtn({ onClick, active, title, children }) {
 }
 
 // ── Editor ──────────────────────────────────────────────────────────────────
+/** @see {@link __tests__/RichTextEditor.test.jsx} */
 export default function RichTextEditor({ value, onChange, placeholder, minHeight = 80 }) {
   const editor = useEditor({
     extensions: [StarterKit],
@@ -79,6 +80,7 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
 }
 
 // ── Read-only rich text renderer (used in table cells) ─────────────────────
+/** @see {@link __tests__/RichTextEditor.test.jsx} */
 export function RichTextDisplay({ value, className, style }) {
   if (!value) return null;
 
