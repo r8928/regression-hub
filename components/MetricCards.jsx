@@ -1,5 +1,3 @@
-'use client';
-
 export default function MetricCards({ cards, loading = false, columns }) {
   const gridStyle = columns ? { gridTemplateColumns: `repeat(${columns}, 1fr)` } : undefined;
   return (

@@ -1,5 +1,3 @@
-'use client';
-
 export default function EmptyState({ icon, title, children, style }) {
   if (!icon && !title) {
     return <div className="empty-state" style={style}>{children}</div>;

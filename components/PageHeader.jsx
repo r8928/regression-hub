@@ -1,5 +1,3 @@
-'use client';
-
 export default function PageHeader({ eyebrow, title, sub, subStyle, actions }) {
   const header = (
     <div className="page-header" style={actions ? { marginBottom: 0 } : undefined}>

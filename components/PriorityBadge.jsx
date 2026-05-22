@@ -1,5 +1,3 @@
-'use client';
-
 const PRIORITY_PALETTE = {
   High:   { bg: '#fef2f2', border: '#fca5a5', color: '#dc2626' },
   Medium: { bg: '#fffbeb', border: '#fcd34d', color: '#d97706' },

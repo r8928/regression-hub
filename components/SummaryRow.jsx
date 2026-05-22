@@ -1,5 +1,3 @@
-'use client';
-
 export default function SummaryRow({ name, passed, failed, pending, total }) {
   const pct = total ? Math.round((passed / total) * 100) : 0;
   return (
