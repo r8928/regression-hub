@@ -185,7 +185,7 @@ export default function UsersClient({ user }) {
                 <span style={{ fontWeight: 600, fontSize: 13 }}>Admin</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 3 }}>
-                {['Manage users (create, edit, passwords)', 'Import Excel & manage versions', 'Clear all data', 'Full test case access', 'Assignments & reports'].map((item) => (
+                {['Manage users (create, edit, passwords)', 'Import Test Cases & manage versions', 'Clear all data', 'Full test case access', 'Assignments & reports'].map((item) => (
                   <li key={item} style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span> {item}
                   </li>
@@ -203,7 +203,7 @@ export default function UsersClient({ user }) {
                     <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span> {item}
                   </li>
                 ))}
-                {['Import Excel', 'Clear data', 'Manage users'].map((item) => (
+                {['Import Test Cases', 'Clear data', 'Manage users'].map((item) => (
                   <li key={item} style={{ fontSize: 12, color: 'var(--muted)', display: 'flex', alignItems: 'center', gap: 5 }}>
                     <span style={{ color: '#dc2626', fontWeight: 700 }}>✗</span> {item}
                   </li>
@@ -370,7 +370,7 @@ export default function UsersClient({ user }) {
                 ))}
               </div>
               <p style={{ marginTop: 6, fontSize: 11, color: 'var(--muted)' }}>
-                {addForm.role === 'admin' ? 'Can manage users, import Excel, clear data, and manage versions.' : 'Can fill test results, manage assignments, and export data.'}
+                {addForm.role === 'admin' ? 'Can manage users, import test cases, clear data, and manage versions.' : 'Can fill test results, manage assignments, and export data.'}
               </p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
