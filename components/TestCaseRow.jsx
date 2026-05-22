@@ -58,8 +58,8 @@ export default function TestCaseRow({ tc, rowNum, saving, onSave, onEdit, select
           placeholder="JIRA-…"
         />
       </td>
-      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12 }}>{tc.traceability}</td>
-      <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, whiteSpace: 'nowrap' }}>{tc.testCaseId}</td>
+      <td className='font-mono' style={{ fontSize: 12 }}>{tc.traceability}</td>
+      <td className='font-mono' style={{ fontSize: 12, whiteSpace: 'nowrap' }}>{tc.testCaseId}</td>
       <td style={{ minWidth: 180, maxWidth: 220, fontSize: 12 }}>{tc.testCase}</td>
       <td style={{ minWidth: 160, maxWidth: 220 }}>
         <RichTextDisplay value={tc.preconditions} style={{ color: 'var(--muted)' }} />

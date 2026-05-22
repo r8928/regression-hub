@@ -60,7 +60,7 @@ export default function DashboardPage() {
         actions={latestVersion ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, background: 'var(--surface-2)', border: '1px solid var(--line)', borderRadius: 8, padding: '8px 14px', fontSize: 13 }}>
             <span style={{ color: 'var(--muted)', fontWeight: 500 }}>Current Version</span>
-            <span style={{ background: 'rgba(13,148,136,0.12)', border: '1px solid rgba(13,148,136,0.4)', borderRadius: 6, padding: '2px 10px', fontWeight: 700, color: '#0d9488', fontFamily: 'var(--font-mono)', fontSize: 13 }}>{latestVersion}</span>
+            <span className='font-mono' style={{ background: 'rgba(13,148,136,0.12)', border: '1px solid rgba(13,148,136,0.4)', borderRadius: 6, padding: '2px 10px', fontWeight: 700, color: '#0d9488', fontSize: 13 }}>{latestVersion}</span>
           </div>
         ) : undefined}
       />

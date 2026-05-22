@@ -279,7 +279,7 @@ export default function UsersPage() {
                             </span>
                           )}
                         </td>
-                        <td style={{ fontFamily: 'var(--font-mono)', fontSize: 12, color: 'var(--muted)' }}>
+                        <td className='font-mono' style={{ fontSize: 12, color: 'var(--muted)' }}>
                           {user.username}
                         </td>
                         <td>

@@ -662,9 +662,9 @@ export default function ReportsPage() {
                     <td>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                         {isSelected && <span style={{ color: 'var(--accent)', fontSize: 12 }}>●</span>}
-                        <span style={{
+                        <span className='font-mono' style={{
                           background: 'rgba(13,148,136,0.1)', border: '1px solid rgba(13,148,136,0.3)',
-                          borderRadius: 6, padding: '2px 10px', fontFamily: 'var(--font-mono)',
+                          borderRadius: 6, padding: '2px 10px',
                           fontSize: 13, fontWeight: 700, color: '#0d9488',
                         }}>v{v.version}</span>
                         {v.isCurrent
@@ -928,9 +928,9 @@ export default function ReportsPage() {
             {/* Modal header */}
             <div style={{ padding: '20px 24px 16px', borderBottom: '1px solid var(--line)', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                <span style={{
+                <span className='font-mono' style={{
                   background: 'rgba(13,148,136,0.1)', border: '1px solid rgba(13,148,136,0.3)',
-                  borderRadius: 6, padding: '3px 12px', fontFamily: 'var(--font-mono)',
+                  borderRadius: 6, padding: '3px 12px',
                   fontSize: 15, fontWeight: 700, color: '#0d9488',
                 }}>v{viewModal.version}</span>
                 <span style={{ fontSize: 12, background: '#f1f5f9', color: '#64748b', borderRadius: 10, padding: '2px 10px' }}>Historical Snapshot</span>

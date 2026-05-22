@@ -64,7 +64,7 @@ export default async function TestRunsPage() {
                   </td>
                   <td>
                     {run.softwareVersion ? (
-                      <span style={{ background: 'rgba(13,148,136,0.1)', border: '1px solid rgba(13,148,136,0.35)', borderRadius: 5, padding: '2px 8px', fontSize: 12, fontFamily: 'var(--font-mono)', color: '#0d9488', fontWeight: 600 }}>
+                      <span className='font-mono' style={{ background: 'rgba(13,148,136,0.1)', border: '1px solid rgba(13,148,136,0.35)', borderRadius: 5, padding: '2px 8px', fontSize: 12, color: '#0d9488', fontWeight: 600 }}>
                         v{run.softwareVersion}
                       </span>
                     ) : '—'}
