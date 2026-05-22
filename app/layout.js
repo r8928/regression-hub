@@ -1,3 +1,4 @@
+import NextTopLoader from 'nextjs-toploader';
 import SessionWrapper from '@/components/SessionWrapper';
 import { fontVariables } from './fonts';
 import './globals.css';
@@ -14,6 +15,7 @@ export default function RootLayout({ children }) {
         <link rel='icon' href='/favicon.svg' type='image/svg+xml' />
       </head>
       <body className={fontVariables} suppressHydrationWarning>
+        <NextTopLoader color="#0d9488" showSpinner={false} />
         <SessionWrapper>{children}</SessionWrapper>
       </body>
     </html>
