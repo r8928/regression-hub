@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { PieChart, Pie, Cell, Tooltip, Legend, BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer } from 'recharts';
-import UploadExcel from '@/components/UploadExcel';
 import ToastProvider from '@/components/Toast';
 import PageHeader from '@/components/PageHeader';
 import MetricCards from '@/components/MetricCards';
@@ -11,9 +10,7 @@ import { useSettings } from '@/hooks/useSharedData';
 
 const COLORS = { Pass: '#16a34a', Fail: '#dc2626', Pending: '#d97706' };
 
-export default function DashboardClient({ user }) {
-  const isAdmin = user.role === 'admin';
-
+export default function DashboardClient() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
@@ -158,22 +155,6 @@ export default function DashboardClient({ user }) {
         ))}
       </div>
 
-      {/* Upload panel — admin only */}
-      {isAdmin ? (
-        <div className='panel'>
-          <div className='panel-header'><h3>Import Excel</h3></div>
-          <div className='panel-body'>
-            <UploadExcel onImported={fetchDashboard} />
-          </div>
-        </div>
-      ) : (
-        <div className='panel'>
-          <div className='panel-body' style={{ padding: '16px 20px', display: 'flex', alignItems: 'center', gap: 10, color: 'var(--muted)', fontSize: 13 }}>
-            <span style={{ fontSize: 16 }}>⚙</span>
-            Excel import is managed by an admin. Contact your team admin to import new test data.
-          </div>
-        </div>
-      )}
     </div>
   );
 }
