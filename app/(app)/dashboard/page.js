@@ -1,5 +1,5 @@
 import DashboardClient from './DashboardClient';
 
-export default async function DashboardPage() {
+export default function DashboardPage() {
   return <DashboardClient />;
 }

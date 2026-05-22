@@ -5,7 +5,7 @@ import ToastProvider from '@/components/Toast';
 import PageHeader from '@/components/PageHeader';
 
 /** @see {@link __tests__/ImportCasesClient.test.jsx} */
-export default function ImportCasesClient({ user }) {
+export default function ImportCasesClient() {
   return (
     <div>
       <ToastProvider />

@@ -12,17 +12,17 @@ vi.mock('@/components/Toast', () => ({
 
 describe('ImportCasesClient', () => {
   it('renders the "Import Test Cases" page header title', () => {
-    render(<ImportCasesClient user={{ name: 'Alice' }} />);
+    render(<ImportCasesClient />);
     expect(screen.getByRole('heading', { name: 'Import Test Cases' })).toBeInTheDocument();
   });
 
   it('renders the UploadExcel component', () => {
-    render(<ImportCasesClient user={{ name: 'Alice' }} />);
+    render(<ImportCasesClient />);
     expect(screen.getByTestId('upload-excel')).toBeInTheDocument();
   });
 
-  it('does not crash when no user prop is passed', () => {
-    expect(() => render(<ImportCasesClient />)).not.toThrow();
+  it('renders correctly without any props', () => {
+    render(<ImportCasesClient />);
     expect(screen.getByRole('heading', { name: 'Import Test Cases' })).toBeInTheDocument();
   });
 });
