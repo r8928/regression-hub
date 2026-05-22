@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
@@ -7,8 +6,6 @@ import EmptyState from '@/components/EmptyState';
 
 export default async function ModulesPage() {
   const session = await getServerSession(authOptions);
-  if (!session) redirect('/login');
-
   const db = await getDb();
   const teamId = session.user.teamId;
 

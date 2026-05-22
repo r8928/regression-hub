@@ -1,6 +1,14 @@
+import { getServerSession } from 'next-auth';
+import { redirect } from 'next/navigation';
+import { authOptions } from '@/lib/auth';
 import LoginForm from './LoginForm';
 
-export default function LoginPage() {
+export default async function LoginPage({ searchParams }) {
+  const session = await getServerSession(authOptions);
+  const redirectTo = searchParams?.redirectTo;
+
+  if (session) redirect(redirectTo || '/dashboard');
+
   return (
     <div style={{
       minHeight: '100vh',
@@ -39,7 +47,7 @@ export default function LoginPage() {
           </p>
         </div>
 
-        <LoginForm />
+        <LoginForm redirectTo={redirectTo} />
 
         <p style={{ textAlign: 'center', marginTop: 24, fontSize: 12, color: '#94a3b8' }}>
           Contact your admin if you need access.

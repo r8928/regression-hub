@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { signIn } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 
-export default function LoginForm() {
+export default function LoginForm({ redirectTo }) {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -24,7 +24,7 @@ export default function LoginForm() {
     if (result?.error) {
       setError('Invalid username or password.');
     } else {
-      router.push('/dashboard');
+      router.push(redirectTo || '/dashboard');
     }
   }
 

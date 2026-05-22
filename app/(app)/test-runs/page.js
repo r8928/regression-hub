@@ -1,4 +1,3 @@
-import { redirect } from 'next/navigation';
 import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getDb } from '@/lib/mongodb';
@@ -9,8 +8,6 @@ import DownloadPdfButton from '@/components/DownloadPdfButton';
 
 export default async function TestRunsPage() {
   const session = await getServerSession(authOptions);
-  if (!session) redirect('/login');
-
   const db = await getDb();
   const testRuns = await db
     .collection('testRuns')
