@@ -9,7 +9,7 @@ export default async function AppLayout({ children }) {
 
   return (
     <div className='app-shell'>
-      <Sidebar />
+      <Sidebar user={session.user} />
       <main className='workspace'>{children}</main>
     </div>
   );

@@ -7,7 +7,6 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("next-auth/react", () => ({
-  useSession: vi.fn(),
   signOut: vi.fn(),
 }));
 
@@ -19,7 +18,6 @@ vi.mock("next/link", () => ({
   ),
 }));
 
-import { useSession } from "next-auth/react";
 import { usePathname } from "next/navigation";
 
 const NAV_LABELS = [
@@ -35,7 +33,6 @@ const NAV_LABELS = [
 describe("Sidebar", () => {
   beforeEach(() => {
     usePathname.mockReturnValue("/dashboard");
-    useSession.mockReturnValue({ data: null });
   });
 
   it("renders all main nav items when open", () => {
@@ -66,47 +63,29 @@ describe("Sidebar", () => {
   });
 
   it("does not render admin nav for non-admin user", () => {
-    useSession.mockReturnValue({
-      data: {
-        user: {
-          name: "Alice",
-          role: "qa",
-          teamId: "radius",
-          teamName: "Radius",
-        },
-      },
-    });
-    render(<Sidebar />);
+    render(
+      <Sidebar
+        user={{ name: "Alice", role: "qa", teamId: "radius", teamName: "Radius" }}
+      />
+    );
     expect(screen.queryByText("Users")).toBeNull();
   });
 
   it("renders admin nav for admin user", () => {
-    useSession.mockReturnValue({
-      data: {
-        user: {
-          name: "Bob",
-          role: "admin",
-          teamId: "radius",
-          teamName: "Radius",
-        },
-      },
-    });
-    render(<Sidebar />);
+    render(
+      <Sidebar
+        user={{ name: "Bob", role: "admin", teamId: "radius", teamName: "Radius" }}
+      />
+    );
     expect(screen.getByText("Users")).toBeInTheDocument();
   });
 
   it("shows signed-in user name when session exists and sidebar is open", () => {
-    useSession.mockReturnValue({
-      data: {
-        user: {
-          name: "Charlie",
-          role: "qa",
-          teamId: "radius",
-          teamName: "Radius",
-        },
-      },
-    });
-    render(<Sidebar />);
+    render(
+      <Sidebar
+        user={{ name: "Charlie", role: "qa", teamId: "radius", teamName: "Radius" }}
+      />
+    );
     expect(screen.getByText("Charlie")).toBeInTheDocument();
     expect(screen.getByText("Radius")).toBeInTheDocument();
   });
@@ -114,5 +93,23 @@ describe("Sidebar", () => {
   it("shows Sign Out button", () => {
     render(<Sidebar />);
     expect(screen.getByTitle("Sign out")).toBeInTheDocument();
+  });
+
+  it("renders 'Import Test Cases' nav item for admin user", () => {
+    render(
+      <Sidebar
+        user={{ name: "Bob", role: "admin", teamId: "radius", teamName: "Radius" }}
+      />
+    );
+    expect(screen.getByText("Import Test Cases")).toBeInTheDocument();
+  });
+
+  it("does not render 'Import Test Cases' for non-admin user", () => {
+    render(
+      <Sidebar
+        user={{ name: "Alice", role: "qa", teamId: "radius", teamName: "Radius" }}
+      />
+    );
+    expect(screen.queryByText("Import Test Cases")).toBeNull();
   });
 });

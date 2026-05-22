@@ -1,6 +1,6 @@
 "use client";
 
-import { signOut, useSession } from "next-auth/react";
+import { signOut } from "next-auth/react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
@@ -15,7 +15,10 @@ const NAV = [
   { href: "/reports", label: "Reports", icon: "⊟" },
 ];
 
-const ADMIN_NAV = [{ href: "/users", label: "Users", icon: "◉" }];
+const ADMIN_NAV = [
+  { href: "/users", label: "Users", icon: "◉" },
+  { href: "/import-cases", label: "Import Test Cases", icon: "⇪" },
+];
 
 const LOCATION_COLOR = {
   radius: "#0d9488",
@@ -23,10 +26,9 @@ const LOCATION_COLOR = {
 };
 
 /** @see {@link __tests__/Sidebar.test.jsx} */
-export default function Sidebar() {
+export default function Sidebar({ user }) {
   const pathname = usePathname();
   const [open, setOpen] = useState(true);
-  const { data: session } = useSession();
 
   return (
     <aside className={`sidebar ${open ? "open" : "collapsed"}`}>
@@ -87,7 +89,7 @@ export default function Sidebar() {
             {open && <span className="nav-label">{label}</span>}
           </Link>
         ))}
-        {session?.user?.role === "admin" && (
+        {user?.role === "admin" && (
           <>
             {open && (
               <div
@@ -129,7 +131,7 @@ export default function Sidebar() {
           padding: open ? "14px 16px" : "14px 8px",
         }}
       >
-        {session && open && (
+        {user && open && (
           <div style={{ marginBottom: 10 }}>
             <div
               style={{
@@ -151,7 +153,7 @@ export default function Sidebar() {
                 marginBottom: 5,
               }}
             >
-              {session.user.name}
+              {user.name}
             </div>
             <div style={{ display: "flex", gap: 5, flexWrap: "wrap" }}>
               {/* Location badge */}
@@ -162,15 +164,15 @@ export default function Sidebar() {
                   fontSize: 11,
                   fontWeight: 600,
                   background: `${
-                    LOCATION_COLOR[session.user.teamId] || "#0d9488"
+                    LOCATION_COLOR[user.teamId] || "#0d9488"
                   }33`,
                   border: `1px solid ${
-                    LOCATION_COLOR[session.user.teamId] || "#0d9488"
+                    LOCATION_COLOR[user.teamId] || "#0d9488"
                   }80`,
-                  color: LOCATION_COLOR[session.user.teamId] || "#5eead4",
+                  color: LOCATION_COLOR[user.teamId] || "#5eead4",
                 }}
               >
-                {session.user.teamName}
+                {user.teamName}
               </span>
               {/* Role badge */}
               <span
@@ -180,18 +182,18 @@ export default function Sidebar() {
                   fontSize: 11,
                   fontWeight: 700,
                   background:
-                    session.user.role === "admin"
+                    user.role === "admin"
                       ? "rgba(13,148,136,0.2)"
                       : "rgba(8,145,178,0.2)",
                   border: `1px solid ${
-                    session.user.role === "admin"
+                    user.role === "admin"
                       ? "rgba(13,148,136,0.5)"
                       : "rgba(8,145,178,0.5)"
                   }`,
-                  color: session.user.role === "admin" ? "#5eead4" : "#7dd3fc",
+                  color: user.role === "admin" ? "#5eead4" : "#7dd3fc",
                 }}
               >
-                {session.user.role === "admin" ? "⚙ Admin" : "◎ QA"}
+                {user.role === "admin" ? "⚙ Admin" : "◎ QA"}
               </span>
             </div>
           </div>
