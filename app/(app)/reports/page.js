@@ -592,23 +592,23 @@ export default function ReportsPage() {
   return (
     <div>
       <ToastProvider />
-      <PageHeader eyebrow="Exports" title="Reports" sub="Generate PDF signoff reports and Excel exports" />
+      <PageHeader eyebrow='Exports' title='Reports' sub='Generate PDF signoff reports and Excel exports' />
 
       {/* Version History */}
       {versions.length > 0 && (
-        <div className="panel" style={{ marginBottom: 20 }}>
-          <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
+        <div className='panel' style={{ marginBottom: 20 }}>
+          <div className='panel-header' style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 10 }}>
             <h3 style={{ margin: 0 }}>Version History</h3>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
               {/* Version search filter */}
               <div style={{ position: 'relative' }}>
-                <svg style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--muted)" strokeWidth="2.5" strokeLinecap="round">
-                  <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+                <svg style={{ position: 'absolute', left: 8, top: '50%', transform: 'translateY(-50%)', pointerEvents: 'none' }} width='13' height='13' viewBox='0 0 24 24' fill='none' stroke='var(--muted)' strokeWidth='2.5' strokeLinecap='round'>
+                  <circle cx='11' cy='11' r='8'/><path d='m21 21-4.35-4.35'/>
                 </svg>
                 <input
                   value={versionFilter}
                   onChange={(e) => setVersionFilter(e.target.value)}
-                  placeholder="Filter version…"
+                  placeholder='Filter version…'
                   style={{ paddingLeft: 26, paddingRight: 8, height: 30, border: '1px solid var(--line)', borderRadius: 6, fontSize: 12, width: 140, background: 'var(--surface-2)', color: 'var(--ink)', outline: 'none' }}
                 />
               </div>
@@ -618,9 +618,9 @@ export default function ReportsPage() {
                 onChange={(e) => setStatusFilter(e.target.value)}
                 style={{ height: 30, border: '1px solid var(--line)', borderRadius: 6, fontSize: 12, padding: '0 8px', background: 'var(--surface-2)', color: 'var(--ink)', cursor: 'pointer' }}
               >
-                <option value="">All statuses</option>
-                <option value="active">Active only</option>
-                <option value="completed">Completed only</option>
+                <option value=''>All statuses</option>
+                <option value='active'>Active only</option>
+                <option value='completed'>Completed only</option>
               </select>
               <span style={{ fontSize: 12, color: 'var(--muted)' }}>click a row to select for export</span>
             </div>
@@ -697,7 +697,7 @@ export default function ReportsPage() {
                       <div style={{ display: 'flex', gap: 5, justifyContent: 'center', flexWrap: 'wrap' }} onClick={(e) => e.stopPropagation()}>
                         {!v.isCurrent && (
                           <button
-                            className="btn btn-secondary btn-sm"
+                            className='btn btn-secondary btn-sm'
                             onClick={() => viewVersion(v.version)}
                             disabled={viewLoading === v.version}
                             style={{ fontSize: 11 }}
@@ -705,8 +705,8 @@ export default function ReportsPage() {
                             {viewLoading === v.version ? '…' : '👁 View'}
                           </button>
                         )}
-                        <button className="btn btn-secondary btn-sm" onClick={() => exportExcel(v.version)} style={{ fontSize: 11 }}>Excel</button>
-                        <button className="btn btn-primary btn-sm" onClick={() => exportPdf(v.version)} disabled={generatingVersion === v.version} style={{ fontSize: 11 }}>
+                        <button className='btn btn-secondary btn-sm' onClick={() => exportExcel(v.version)} style={{ fontSize: 11 }}>Excel</button>
+                        <button className='btn btn-primary btn-sm' onClick={() => exportPdf(v.version)} disabled={generatingVersion === v.version} style={{ fontSize: 11 }}>
                           {generatingVersion === v.version ? '…' : 'PDF'}
                         </button>
                       </div>
@@ -728,9 +728,9 @@ export default function ReportsPage() {
                           onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.background = 'none'; }}
                         >
                           {completingVersion === v.version ? '…' : (
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                              <polyline points="22 4 12 14.01 9 11.01"/>
+                            <svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'>
+                              <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/>
+                              <polyline points='22 4 12 14.01 9 11.01'/>
                             </svg>
                           )}
                         </button>
@@ -750,10 +750,10 @@ export default function ReportsPage() {
                         onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.75'; e.currentTarget.style.background = 'none'; }}
                       >
                         {restoringVersion === v.version ? '…' : (
-                          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                            <path d="M3 3v5h5"/>
-                            <path d="M12 7v5l3 2"/>
+                          <svg width='15' height='15' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.2' strokeLinecap='round' strokeLinejoin='round'>
+                            <path d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/>
+                            <path d='M3 3v5h5'/>
+                            <path d='M12 7v5l3 2'/>
                           </svg>
                         )}
                       </button>
@@ -771,11 +771,11 @@ export default function ReportsPage() {
                         onMouseLeave={(e) => { e.currentTarget.style.opacity = '0.7'; e.currentTarget.style.background = 'none'; }}
                       >
                         {deletingVersion === v.version ? '…' : (
-                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                            <polyline points="3 6 5 6 21 6"/>
-                            <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                            <path d="M10 11v6M14 11v6"/>
-                            <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>
+                          <svg width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='currentColor' strokeWidth='2.2' strokeLinecap='round' strokeLinejoin='round'>
+                            <polyline points='3 6 5 6 21 6'/>
+                            <path d='M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6'/>
+                            <path d='M10 11v6M14 11v6'/>
+                            <path d='M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2'/>
                           </svg>
                         )}
                       </button>
@@ -795,29 +795,29 @@ export default function ReportsPage() {
         </div>
       )}
 
-      <div className="panel" style={{ marginBottom: 20 }}>
-        <div className="panel-header"><h3>Custom Export {selectedVersion && <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--accent)' }}>— scoped to v{selectedVersion}</span>}</h3></div>
-        <div className="panel-body">
+      <div className='panel' style={{ marginBottom: 20 }}>
+        <div className='panel-header'><h3>Custom Export {selectedVersion && <span style={{ fontSize: 12, fontWeight: 400, color: 'var(--accent)' }}>— scoped to v{selectedVersion}</span>}</h3></div>
+        <div className='panel-body'>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 14, marginBottom: 14 }}>
-            <div className="field-group">
-              <label className="field-label">Application / Scope</label>
-              <select className="field-select" value={selectedApp} onChange={(e) => handleAppChange(e.target.value)}>
-                <option value="">All Applications</option>
+            <div className='field-group'>
+              <label className='field-label'>Application / Scope</label>
+              <select className='field-select' value={selectedApp} onChange={(e) => handleAppChange(e.target.value)}>
+                <option value=''>All Applications</option>
                 {applications.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label">Test Environment</label>
-              <input className="field-input" value={environment} onChange={(e) => setEnvironment(e.target.value)} onBlur={() => fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testEnvironment: environment, softwareVersion: version }) }).catch(() => {})} placeholder="e.g. QA, Staging" />
+            <div className='field-group'>
+              <label className='field-label'>Test Environment</label>
+              <input className='field-input' value={environment} onChange={(e) => setEnvironment(e.target.value)} onBlur={() => fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testEnvironment: environment, softwareVersion: version }) }).catch(() => {})} placeholder='e.g. QA, Staging' />
             </div>
-            <div className="field-group">
-              <label className="field-label">Software Version (for PDF header)</label>
-              <input className="field-input" value={version} onChange={(e) => setVersion(e.target.value)} onBlur={() => fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testEnvironment: environment, softwareVersion: version }) }).catch(() => {})} placeholder="e.g. 2.4.1" />
+            <div className='field-group'>
+              <label className='field-label'>Software Version (for PDF header)</label>
+              <input className='field-input' value={version} onChange={(e) => setVersion(e.target.value)} onBlur={() => fetch('/api/settings', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ testEnvironment: environment, softwareVersion: version }) }).catch(() => {})} placeholder='e.g. 2.4.1' />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
-            <button className="btn btn-secondary" onClick={() => exportExcel()}>Export Excel</button>
-            <button className="btn btn-primary" onClick={() => exportPdf()} disabled={generatingPdf}>
+            <button className='btn btn-secondary' onClick={() => exportExcel()}>Export Excel</button>
+            <button className='btn btn-primary' onClick={() => exportPdf()} disabled={generatingPdf}>
               {generatingPdf ? 'Generating…' : 'Export PDF Signoff'}
             </button>
           </div>
@@ -838,10 +838,10 @@ export default function ReportsPage() {
           }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
               <div style={{ background: 'rgba(13,148,136,0.1)', border: '2px solid rgba(13,148,136,0.25)', borderRadius: '50%', width: 62, height: 62, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#0d9488" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
-                  <path d="M3 3v5h5"/>
-                  <path d="M12 7v5l3 2"/>
+                <svg width='28' height='28' viewBox='0 0 24 24' fill='none' stroke='#0d9488' strokeWidth='2.2' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8'/>
+                  <path d='M3 3v5h5'/>
+                  <path d='M12 7v5l3 2'/>
                 </svg>
               </div>
             </div>
@@ -864,11 +864,11 @@ export default function ReportsPage() {
             )}
 
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button className="btn btn-secondary" onClick={() => setConfirmRestore(null)} style={{ minWidth: 100 }}>
+              <button className='btn btn-secondary' onClick={() => setConfirmRestore(null)} style={{ minWidth: 100 }}>
                 Cancel
               </button>
               <button
-                className="btn btn-primary"
+                className='btn btn-primary'
                 style={{ background: '#0d9488', borderColor: '#0d9488', minWidth: 140 }}
                 onClick={() => doRestore(confirmRestore)}
               >
@@ -889,9 +889,9 @@ export default function ReportsPage() {
           <div style={{ background: '#ffffff', borderRadius: 14, width: '100%', maxWidth: 420, padding: '32px 28px', boxShadow: '0 24px 64px rgba(0,0,0,0.28)', textAlign: 'center' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 18 }}>
               <div style={{ background: 'rgba(22,163,74,0.1)', border: '2px solid rgba(22,163,74,0.25)', borderRadius: '50%', width: 62, height: 62, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#16a34a" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-                  <polyline points="22 4 12 14.01 9 11.01"/>
+                <svg width='26' height='26' viewBox='0 0 24 24' fill='none' stroke='#16a34a' strokeWidth='2.5' strokeLinecap='round' strokeLinejoin='round'>
+                  <path d='M22 11.08V12a10 10 0 1 1-5.93-9.14'/>
+                  <polyline points='22 4 12 14.01 9 11.01'/>
                 </svg>
               </div>
             </div>
@@ -900,9 +900,9 @@ export default function ReportsPage() {
               This saves a snapshot of all test case results for v{confirmComplete} and marks the testing cycle as <strong>done</strong>. The version will appear as <strong>completed</strong> in history and can be viewed or restored anytime.
             </p>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
-              <button className="btn btn-secondary" onClick={() => setConfirmComplete(null)} style={{ minWidth: 100 }}>Cancel</button>
+              <button className='btn btn-secondary' onClick={() => setConfirmComplete(null)} style={{ minWidth: 100 }}>Cancel</button>
               <button
-                className="btn btn-primary"
+                className='btn btn-primary'
                 style={{ background: '#16a34a', borderColor: '#16a34a', minWidth: 160 }}
                 onClick={() => markComplete(confirmComplete)}
               >
@@ -1020,10 +1020,10 @@ export default function ReportsPage() {
 
               {/* Footer actions */}
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', paddingTop: 16, borderTop: '1px solid var(--line)' }}>
-                <button className="btn btn-secondary" onClick={() => { exportExcel(viewModal.version); }}>Export Excel</button>
-                <button className="btn btn-secondary" onClick={() => { exportPdf(viewModal.version); }}>Export PDF</button>
+                <button className='btn btn-secondary' onClick={() => { exportExcel(viewModal.version); }}>Export Excel</button>
+                <button className='btn btn-secondary' onClick={() => { exportPdf(viewModal.version); }}>Export PDF</button>
                 <button
-                  className="btn btn-primary"
+                  className='btn btn-primary'
                   style={{ background: '#0d9488', borderColor: '#0d9488' }}
                   onClick={() => { setViewModal(null); setConfirmRestore({ version: viewModal.version, isCurrent: false }); }}
                   disabled={restoringVersion === viewModal.version}

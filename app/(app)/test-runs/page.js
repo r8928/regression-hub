@@ -33,14 +33,14 @@ export default async function TestRunsPage() {
   return (
     <div>
       <ToastProvider />
-      <PageHeader eyebrow="History" title="Test Runs" sub={`Each Excel import creates a new test run. ${runs.length} total.`} />
+      <PageHeader eyebrow='History' title='Test Runs' sub={`Each Excel import creates a new test run. ${runs.length} total.`} />
 
       {runs.length === 0 ? (
-        <EmptyState icon="⟳" title="No test runs yet">
+        <EmptyState icon='⟳' title='No test runs yet'>
           <p>Each Excel file you import will appear here as a test run.</p>
         </EmptyState>
       ) : (
-        <div className="panel">
+        <div className='panel'>
           <table>
             <thead>
               <tr>

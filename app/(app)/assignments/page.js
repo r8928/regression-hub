@@ -171,10 +171,10 @@ export default function AssignmentsPage() {
 
       {/* Header */}
       <PageHeader
-        eyebrow="Team"
-        title="Assignments"
-        sub="Assign test cases and modules to team members"
-        actions={<button className="btn btn-primary" onClick={() => { setForm(EMPTY_FORM); setShowModal(true); }}>+ New Assignment</button>}
+        eyebrow='Team'
+        title='Assignments'
+        sub='Assign test cases and modules to team members'
+        actions={<button className='btn btn-primary' onClick={() => { setForm(EMPTY_FORM); setShowModal(true); }}>+ New Assignment</button>}
       />
 
       {/* Tabs */}
@@ -208,7 +208,7 @@ export default function AssignmentsPage() {
       {loading ? (
         <EmptyState>Loading…</EmptyState>
       ) : active.length === 0 ? (
-        <EmptyState icon="◷" title={view === 'mine' ? 'No assignments for you yet' : "You haven't assigned anything yet"}>
+        <EmptyState icon='◷' title={view === 'mine' ? 'No assignments for you yet' : "You haven't assigned anything yet"}>
           <p style={{ marginTop: 6, color: 'var(--muted)' }}>
             {view === 'mine' ? 'Ask a team member to assign test cases to you.' : 'Click "New Assignment" to assign a module or test cases.'}
           </p>
@@ -242,7 +242,7 @@ export default function AssignmentsPage() {
           </summary>
           <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
             {cancelled.map((a) => (
-              <div key={a._id} className="panel" style={{ opacity: 0.55, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div key={a._id} className='panel' style={{ opacity: 0.55, padding: '14px 18px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <div style={{ fontWeight: 600, fontSize: 14 }}>{a.title}</div>
                   <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 2 }}>
@@ -257,30 +257,30 @@ export default function AssignmentsPage() {
 
       {/* Create Assignment Modal */}
       {showModal && (
-        <Modal title="New Assignment" onClose={() => { setShowModal(false); setForm(EMPTY_FORM); }} maxWidth={560} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
+        <Modal title='New Assignment' onClose={() => { setShowModal(false); setForm(EMPTY_FORM); }} maxWidth={560} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
           <form onSubmit={createAssignment}>
               <div style={{ display: 'grid', gap: 16 }}>
 
                 {/* Title */}
-                <div className="field-group">
-                  <label className="field-label">Title <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
+                <div className='field-group'>
+                  <label className='field-label'>Title <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
                   <input
-                    className="field-input"
-                    type="text"
+                    className='field-input'
+                    type='text'
                     value={form.title}
                     onChange={(e) => setForm((f) => ({ ...f, title: e.target.value }))}
-                    placeholder="e.g. Auth Module — v2.5 regression"
+                    placeholder='e.g. Auth Module — v2.5 regression'
                   />
                 </div>
 
                 {/* Scope: Module or Manual selection */}
-                <div className="field-group">
-                  <label className="field-label">Scope</label>
+                <div className='field-group'>
+                  <label className='field-label'>Scope</label>
                   <div style={{ display: 'flex', gap: 8 }}>
                     {['module', 'selection'].map((t) => (
                       <button
                         key={t}
-                        type="button"
+                        type='button'
                         onClick={() => setForm((f) => ({ ...f, type: t, moduleIds: [], testCaseIds: [] }))}
                         style={{
                           flex: 1,
@@ -302,8 +302,8 @@ export default function AssignmentsPage() {
 
                 {/* Module picker */}
                 {form.type === 'module' && (
-                  <div className="field-group">
-                    <label className="field-label">Modules to assign</label>
+                  <div className='field-group'>
+                    <label className='field-label'>Modules to assign</label>
                     <div style={{ maxHeight: 200, overflowY: 'auto', border: '1px solid var(--line)', borderRadius: 8, padding: 8, display: 'grid', gap: 4 }}>
                       {modules.length === 0
                         ? <div style={{ color: 'var(--muted)', fontSize: 13, padding: 8 }}>No modules found</div>
@@ -313,7 +313,7 @@ export default function AssignmentsPage() {
                           return (
                             <label key={m._id} style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '6px 8px', borderRadius: 6, cursor: 'pointer', background: checked ? 'rgba(13,148,136,0.06)' : 'transparent', border: checked ? '1px solid rgba(13,148,136,0.2)' : '1px solid transparent' }}>
                               <input
-                                type="checkbox"
+                                type='checkbox'
                                 checked={checked}
                                 onChange={() => setForm((f) => ({
                                   ...f,
@@ -339,15 +339,15 @@ export default function AssignmentsPage() {
                 )}
 
                 {/* Assignee */}
-                <div className="field-group">
-                  <label className="field-label">Assign to</label>
+                <div className='field-group'>
+                  <label className='field-label'>Assign to</label>
                   <select
-                    className="field-select"
+                    className='field-select'
                     value={form.assignedTo}
                     onChange={(e) => setForm((f) => ({ ...f, assignedTo: e.target.value }))}
                     required
                   >
-                    <option value="">Select team member…</option>
+                    <option value=''>Select team member…</option>
                     {qaUsers.map((u) => (
                       <option key={u} value={u}>{u}</option>
                     ))}
@@ -356,23 +356,23 @@ export default function AssignmentsPage() {
 
                 {/* Priority + Due Date */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                  <div className="field-group">
-                    <label className="field-label">Priority</label>
+                  <div className='field-group'>
+                    <label className='field-label'>Priority</label>
                     <select
-                      className="field-select"
+                      className='field-select'
                       value={form.priority}
                       onChange={(e) => setForm((f) => ({ ...f, priority: e.target.value }))}
                     >
-                      <option value="High">High</option>
-                      <option value="Medium">Medium</option>
-                      <option value="Low">Low</option>
+                      <option value='High'>High</option>
+                      <option value='Medium'>Medium</option>
+                      <option value='Low'>Low</option>
                     </select>
                   </div>
-                  <div className="field-group">
-                    <label className="field-label">Due date <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
+                  <div className='field-group'>
+                    <label className='field-label'>Due date <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
                     <input
-                      className="field-input"
-                      type="date"
+                      className='field-input'
+                      type='date'
                       value={form.dueDate}
                       onChange={(e) => setForm((f) => ({ ...f, dueDate: e.target.value }))}
                     />
@@ -380,24 +380,24 @@ export default function AssignmentsPage() {
                 </div>
 
                 {/* Notes */}
-                <div className="field-group">
-                  <label className="field-label">Notes <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
+                <div className='field-group'>
+                  <label className='field-label'>Notes <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
                   <textarea
-                    className="field-input"
+                    className='field-input'
                     rows={3}
                     value={form.notes}
                     onChange={(e) => setForm((f) => ({ ...f, notes: e.target.value }))}
-                    placeholder="Instructions, context, or special focus areas…"
+                    placeholder='Instructions, context, or special focus areas…'
                     style={{ resize: 'vertical' }}
                   />
                 </div>
               </div>
 
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end', marginTop: 20 }}>
-                <button type="button" className="btn btn-secondary" onClick={() => { setShowModal(false); setForm(EMPTY_FORM); }}>Cancel</button>
+                <button type='button' className='btn btn-secondary' onClick={() => { setShowModal(false); setForm(EMPTY_FORM); }}>Cancel</button>
                 <button
-                  type="submit"
-                  className="btn btn-primary"
+                  type='submit'
+                  className='btn btn-primary'
                   disabled={saving || (form.type === 'module' && !form.moduleIds.length) || !form.assignedTo}
                 >
                   {saving ? 'Creating…' : 'Create Assignment'}
@@ -412,7 +412,7 @@ export default function AssignmentsPage() {
 
 function AssignmentCard({ assignment: a, isMine, isSent, isEditing, editForm, onEdit, onEditChange, onSaveEdit, onCancelEdit, onCancel, onViewCases }) {
   return (
-    <div className="panel" style={{ padding: 0, overflow: 'hidden' }}>
+    <div className='panel' style={{ padding: 0, overflow: 'hidden' }}>
       {/* Priority stripe */}
       <div style={{
         height: 4,
@@ -423,29 +423,29 @@ function AssignmentCard({ assignment: a, isMine, isSent, isEditing, editForm, on
         {isEditing ? (
           /* Edit mode */
           <div style={{ display: 'grid', gap: 12 }}>
-            <div className="field-group">
-              <label className="field-label">Title</label>
-              <input className="field-input" value={editForm.title || ''} onChange={(e) => onEditChange({ title: e.target.value })} />
+            <div className='field-group'>
+              <label className='field-label'>Title</label>
+              <input className='field-input' value={editForm.title || ''} onChange={(e) => onEditChange({ title: e.target.value })} />
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="field-group">
-                <label className="field-label">Priority</label>
-                <select className="field-select" value={editForm.priority || 'Medium'} onChange={(e) => onEditChange({ priority: e.target.value })}>
+              <div className='field-group'>
+                <label className='field-label'>Priority</label>
+                <select className='field-select' value={editForm.priority || 'Medium'} onChange={(e) => onEditChange({ priority: e.target.value })}>
                   <option>High</option><option>Medium</option><option>Low</option>
                 </select>
               </div>
-              <div className="field-group">
-                <label className="field-label">Due date</label>
-                <input className="field-input" type="date" value={editForm.dueDate || ''} onChange={(e) => onEditChange({ dueDate: e.target.value })} />
+              <div className='field-group'>
+                <label className='field-label'>Due date</label>
+                <input className='field-input' type='date' value={editForm.dueDate || ''} onChange={(e) => onEditChange({ dueDate: e.target.value })} />
               </div>
             </div>
-            <div className="field-group">
-              <label className="field-label">Notes</label>
-              <textarea className="field-input" rows={2} value={editForm.notes || ''} onChange={(e) => onEditChange({ notes: e.target.value })} style={{ resize: 'vertical' }} />
+            <div className='field-group'>
+              <label className='field-label'>Notes</label>
+              <textarea className='field-input' rows={2} value={editForm.notes || ''} onChange={(e) => onEditChange({ notes: e.target.value })} style={{ resize: 'vertical' }} />
             </div>
             <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary btn-sm" onClick={onCancelEdit}>Cancel</button>
-              <button className="btn btn-primary btn-sm" onClick={onSaveEdit}>Save</button>
+              <button className='btn btn-secondary btn-sm' onClick={onCancelEdit}>Cancel</button>
+              <button className='btn btn-primary btn-sm' onClick={onSaveEdit}>Save</button>
             </div>
           </div>
         ) : (
@@ -469,11 +469,11 @@ function AssignmentCard({ assignment: a, isMine, isSent, isEditing, editForm, on
               </div>
               <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                 {isSent && (
-                  <button className="btn btn-secondary btn-sm" onClick={onEdit} title="Edit assignment">✎</button>
+                  <button className='btn btn-secondary btn-sm' onClick={onEdit} title='Edit assignment'>✎</button>
                 )}
-                <button className="btn btn-primary btn-sm" onClick={onViewCases}>View Cases</button>
+                <button className='btn btn-primary btn-sm' onClick={onViewCases}>View Cases</button>
                 {isSent && (
-                  <button className="btn btn-danger btn-sm" onClick={onCancel} title="Cancel assignment" style={{ padding: '5px 10px' }}>✕</button>
+                  <button className='btn btn-danger btn-sm' onClick={onCancel} title='Cancel assignment' style={{ padding: '5px 10px' }}>✕</button>
                 )}
               </div>
             </div>

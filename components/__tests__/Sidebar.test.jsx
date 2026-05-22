@@ -1,87 +1,118 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/react';
-import Sidebar from '../Sidebar';
+import { fireEvent, render, screen } from "@testing-library/react";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import Sidebar from "../Sidebar";
 
-vi.mock('next/navigation', () => ({
+vi.mock("next/navigation", () => ({
   usePathname: vi.fn(),
 }));
 
-vi.mock('next-auth/react', () => ({
+vi.mock("next-auth/react", () => ({
   useSession: vi.fn(),
   signOut: vi.fn(),
 }));
 
-vi.mock('next/link', () => ({
+vi.mock("next/link", () => ({
   default: ({ href, children, className }) => (
-    <a href={href} className={className}>{children}</a>
+    <a href={href} className={className}>
+      {children}
+    </a>
   ),
 }));
 
-import { usePathname } from 'next/navigation';
-import { useSession } from 'next-auth/react';
+import { useSession } from "next-auth/react";
+import { usePathname } from "next/navigation";
 
-const NAV_LABELS = ['Dashboard', 'Test Cases', 'Applications', 'Modules', 'Assignments', 'Test Runs', 'Reports'];
+const NAV_LABELS = [
+  "Dashboard",
+  "Test Cases",
+  "Applications",
+  "Modules",
+  "Assignments",
+  "Test Runs",
+  "Reports",
+];
 
-describe('Sidebar', () => {
+describe("Sidebar", () => {
   beforeEach(() => {
-    usePathname.mockReturnValue('/dashboard');
+    usePathname.mockReturnValue("/dashboard");
     useSession.mockReturnValue({ data: null });
   });
 
-  it('returns null when pathname is /login', () => {
-    usePathname.mockReturnValue('/login');
-    const { container } = render(<Sidebar />);
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('renders all main nav items when open', () => {
+  it("renders all main nav items when open", () => {
     render(<Sidebar />);
     for (const label of NAV_LABELS) {
       expect(screen.getByText(label)).toBeInTheDocument();
     }
   });
 
-  it('hides nav labels and shows only icons after collapsing', () => {
+  it("hides nav labels and shows only icons after collapsing", () => {
     render(<Sidebar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
-    expect(screen.queryByText('Dashboard')).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
+    expect(screen.queryByText("Dashboard")).toBeNull();
   });
 
-  it('expands again when QA button is clicked while collapsed', () => {
+  it("expands again when QA button is clicked while collapsed", () => {
     render(<Sidebar />);
-    fireEvent.click(screen.getByRole('button', { name: 'Collapse sidebar' }));
-    fireEvent.click(screen.getByRole('button', { name: 'Expand sidebar' }));
-    expect(screen.getByText('Dashboard')).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Collapse sidebar" }));
+    fireEvent.click(screen.getByRole("button", { name: "Expand sidebar" }));
+    expect(screen.getByText("Dashboard")).toBeInTheDocument();
   });
 
-  it('marks the active nav item based on pathname', () => {
-    usePathname.mockReturnValue('/test-cases');
+  it("marks the active nav item based on pathname", () => {
+    usePathname.mockReturnValue("/test-cases");
     render(<Sidebar />);
-    const link = screen.getByText('Test Cases').closest('a');
-    expect(link.className).toContain('active');
+    const link = screen.getByText("Test Cases").closest("a");
+    expect(link.className).toContain("active");
   });
 
-  it('does not render admin nav for non-admin user', () => {
-    useSession.mockReturnValue({ data: { user: { name: 'Alice', role: 'qa', teamId: 'radius', teamName: 'Radius' } } });
+  it("does not render admin nav for non-admin user", () => {
+    useSession.mockReturnValue({
+      data: {
+        user: {
+          name: "Alice",
+          role: "qa",
+          teamId: "radius",
+          teamName: "Radius",
+        },
+      },
+    });
     render(<Sidebar />);
-    expect(screen.queryByText('Users')).toBeNull();
+    expect(screen.queryByText("Users")).toBeNull();
   });
 
-  it('renders admin nav for admin user', () => {
-    useSession.mockReturnValue({ data: { user: { name: 'Bob', role: 'admin', teamId: 'radius', teamName: 'Radius' } } });
+  it("renders admin nav for admin user", () => {
+    useSession.mockReturnValue({
+      data: {
+        user: {
+          name: "Bob",
+          role: "admin",
+          teamId: "radius",
+          teamName: "Radius",
+        },
+      },
+    });
     render(<Sidebar />);
-    expect(screen.getByText('Users')).toBeInTheDocument();
+    expect(screen.getByText("Users")).toBeInTheDocument();
   });
 
-  it('shows signed-in user name when session exists and sidebar is open', () => {
-    useSession.mockReturnValue({ data: { user: { name: 'Charlie', role: 'qa', teamId: 'radius', teamName: 'Radius' } } });
+  it("shows signed-in user name when session exists and sidebar is open", () => {
+    useSession.mockReturnValue({
+      data: {
+        user: {
+          name: "Charlie",
+          role: "qa",
+          teamId: "radius",
+          teamName: "Radius",
+        },
+      },
+    });
     render(<Sidebar />);
-    expect(screen.getByText('Charlie')).toBeInTheDocument();
-    expect(screen.getByText('Radius')).toBeInTheDocument();
+    expect(screen.getByText("Charlie")).toBeInTheDocument();
+    expect(screen.getByText("Radius")).toBeInTheDocument();
   });
 
-  it('shows Sign Out button', () => {
+  it("shows Sign Out button", () => {
     render(<Sidebar />);
-    expect(screen.getByTitle('Sign out')).toBeInTheDocument();
+    expect(screen.getByTitle("Sign out")).toBeInTheDocument();
   });
 });

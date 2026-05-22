@@ -479,7 +479,7 @@ function TestCasesPage() {
   const somePageSelected = selectedOnPage.length > 0 && !allPageSelected;
 
   const clearBtn = (onClick) => (
-    <button onClick={onClick} title="Clear" style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
+    <button onClick={onClick} title='Clear' style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 14, padding: 0, lineHeight: 1 }}>×</button>
   );
 
   return (
@@ -488,22 +488,22 @@ function TestCasesPage() {
 
       {/* Header */}
       <PageHeader
-        eyebrow="Data Grid"
-        title="Test Cases"
+        eyebrow='Data Grid'
+        title='Test Cases'
         sub={loading ? 'Loading…' : `${totalCount} rows`}
         actions={
           <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-            <button className="btn btn-primary btn-sm" onClick={() => setShowAddModal(true)}>+ Add Test Case</button>
+            <button className='btn btn-primary btn-sm' onClick={() => setShowAddModal(true)}>+ Add Test Case</button>
             {isAdmin && (
-              <button className="btn btn-danger btn-sm" onClick={clearAll}>Clear All Data</button>
+              <button className='btn btn-danger btn-sm' onClick={clearAll}>Clear All Data</button>
             )}
           </div>
         }
       />
 
       {/* Bulk Fill */}
-      <div className="panel" style={{ marginBottom: 16 }}>
-        <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div className='panel' style={{ marginBottom: 16 }}>
+        <div className='panel-header' style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
             <h3 style={{ margin: 0 }}>Bulk Fill</h3>
             {selectedIds.size > 0 && (
@@ -513,11 +513,11 @@ function TestCasesPage() {
                   <button
                     onClick={() => setSelectedIds(new Set())}
                     style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#fff', fontSize: 13, marginLeft: 6, padding: 0, lineHeight: 1, opacity: 0.8 }}
-                    title="Clear selection"
+                    title='Clear selection'
                   >×</button>
                 </span>
                 <button
-                  className="btn btn-secondary btn-sm"
+                  className='btn btn-secondary btn-sm'
                   onClick={() => setShowAssignModal(true)}
                   style={{ fontSize: 12, padding: '3px 10px' }}
                 >◷ Assign</button>
@@ -526,43 +526,43 @@ function TestCasesPage() {
           </div>
           <button
             onClick={() => { setBStatus(''); setBFromTester(''); setBTester(''); setBDate(''); setBVersion(''); setBPriority(''); }}
-            title="Clear bulk fill fields"
+            title='Clear bulk fill fields'
             style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 18, lineHeight: 1, padding: '0 4px' }}
           >×</button>
         </div>
-        <div className="panel-body">
+        <div className='panel-body'>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, marginBottom: 10 }}>
-            <div className="field-group">
-              <label className="field-label">Fill Status</label>
-              <select className="field-select" value={bStatus} onChange={(e) => setBStatus(e.target.value)}>
-                <option value="">No change</option>
-                <option value="Pass">Pass</option>
-                <option value="Fail">Fail</option>
-                <option value="Pending">Pending</option>
+            <div className='field-group'>
+              <label className='field-label'>Fill Status</label>
+              <select className='field-select' value={bStatus} onChange={(e) => setBStatus(e.target.value)}>
+                <option value=''>No change</option>
+                <option value='Pass'>Pass</option>
+                <option value='Fail'>Fail</option>
+                <option value='Pending'>Pending</option>
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
                 From Tester
                 <span style={{ fontSize: 10, color: 'var(--muted)', fontWeight: 400 }}>(filter)</span>
               </label>
-              <select className="field-select" value={bFromTester} onChange={(e) => setBFromTester(e.target.value)}
+              <select className='field-select' value={bFromTester} onChange={(e) => setBFromTester(e.target.value)}
                 style={{ borderColor: bFromTester ? 'var(--accent)' : undefined }}>
-                <option value="">All visible</option>
+                <option value=''>All visible</option>
                 {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label">→ Reassign To</label>
-              <select className="field-select" value={bTester} onChange={(e) => setBTester(e.target.value)}>
-                <option value="">No change</option>
+            <div className='field-group'>
+              <label className='field-label'>→ Reassign To</label>
+              <select className='field-select' value={bTester} onChange={(e) => setBTester(e.target.value)}>
+                <option value=''>No change</option>
                 {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label">Priority</label>
+            <div className='field-group'>
+              <label className='field-label'>Priority</label>
               <select
-                className="field-select"
+                className='field-select'
                 value={bPriority}
                 onChange={(e) => setBPriority(e.target.value)}
                 style={{
@@ -571,24 +571,24 @@ function TestCasesPage() {
                   ...(bPriority === 'Low'    && { borderColor: '#16a34a', color: '#16a34a', fontWeight: 600 }),
                 }}
               >
-                <option value="">No change</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+                <option value=''>No change</option>
+                <option value='High'>High</option>
+                <option value='Medium'>Medium</option>
+                <option value='Low'>Low</option>
               </select>
             </div>
           </div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10, alignItems: 'end' }}>
-            <div className="field-group">
-              <label className="field-label">Fill Date</label>
-              <input className="field-input" type="date" value={bDate} onChange={(e) => setBDate(e.target.value)} />
+            <div className='field-group'>
+              <label className='field-label'>Fill Date</label>
+              <input className='field-input' type='date' value={bDate} onChange={(e) => setBDate(e.target.value)} />
             </div>
-            <div className="field-group">
-              <label className="field-label">Fill Version</label>
-              <input className="field-input" type="text" value={bVersion} onChange={(e) => handleVersionChange(e.target.value)} placeholder="e.g. 2.4.1" />
+            <div className='field-group'>
+              <label className='field-label'>Fill Version</label>
+              <input className='field-input' type='text' value={bVersion} onChange={(e) => handleVersionChange(e.target.value)} placeholder='e.g. 2.4.1' />
             </div>
             <button
-              className="btn btn-secondary"
+              className='btn btn-secondary'
               onClick={() => bulkFill(true)}
               disabled={bulkLoading}
               style={{
@@ -600,7 +600,7 @@ function TestCasesPage() {
               {bStatus ? `${bStatus}: Pending Rows` : 'Fill Pending'}
             </button>
             <button
-              className="btn btn-primary"
+              className='btn btn-primary'
               onClick={() => bulkFill(false)}
               disabled={bulkLoading}
               style={{
@@ -619,8 +619,8 @@ function TestCasesPage() {
 
       {/* Bulk Edit — shown when rows are selected */}
       {selectedIds.size > 0 && (
-        <div className="panel" style={{ marginBottom: 16, borderColor: 'var(--accent)', borderWidth: 1, borderStyle: 'solid' }}>
-          <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className='panel' style={{ marginBottom: 16, borderColor: 'var(--accent)', borderWidth: 1, borderStyle: 'solid' }}>
+          <div className='panel-header' style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <h3 style={{ margin: 0 }}>
               Bulk Edit
               <span style={{ fontSize: 12, background: 'var(--accent)', color: '#fff', borderRadius: 10, padding: '2px 9px', fontWeight: 600, marginLeft: 10 }}>
@@ -630,45 +630,45 @@ function TestCasesPage() {
             <button
               onClick={() => { setBePriority(''); setBeJiraStory(''); setBeApplication(''); setBeModule(''); }}
               style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--muted)', fontSize: 18, lineHeight: 1, padding: '0 4px' }}
-              title="Clear bulk edit fields"
+              title='Clear bulk edit fields'
             >×</button>
           </div>
-          <div className="panel-body">
+          <div className='panel-body'>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 10, alignItems: 'end' }}>
-              <div className="field-group">
-                <label className="field-label">Application</label>
-                <select className="field-select" value={beApplication}
+              <div className='field-group'>
+                <label className='field-label'>Application</label>
+                <select className='field-select' value={beApplication}
                   onChange={(e) => { setBeApplication(e.target.value); setBeModule(''); }}>
-                  <option value="">No change</option>
+                  <option value=''>No change</option>
                   {applications.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
                 </select>
               </div>
-              <div className="field-group">
-                <label className="field-label">Module</label>
-                <select className="field-select" value={beModule} onChange={(e) => setBeModule(e.target.value)}>
-                  <option value="">No change</option>
+              <div className='field-group'>
+                <label className='field-label'>Module</label>
+                <select className='field-select' value={beModule} onChange={(e) => setBeModule(e.target.value)}>
+                  <option value=''>No change</option>
                   {(beApplication ? modules.filter((m) => m.applicationId === beApplication) : modules)
                     .map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
                 </select>
               </div>
-              <div className="field-group">
-                <label className="field-label">Priority</label>
-                <select className="field-select" value={bePriority} onChange={(e) => setBePriority(e.target.value)}>
-                  <option value="">No change</option>
-                  <option value="High">High</option>
-                  <option value="Medium">Medium</option>
-                  <option value="Low">Low</option>
+              <div className='field-group'>
+                <label className='field-label'>Priority</label>
+                <select className='field-select' value={bePriority} onChange={(e) => setBePriority(e.target.value)}>
+                  <option value=''>No change</option>
+                  <option value='High'>High</option>
+                  <option value='Medium'>Medium</option>
+                  <option value='Low'>Low</option>
                 </select>
               </div>
-              <div className="field-group">
-                <label className="field-label">Jira Story</label>
-                <input className="field-input" type="text" value={beJiraStory}
+              <div className='field-group'>
+                <label className='field-label'>Jira Story</label>
+                <input className='field-input' type='text' value={beJiraStory}
                   onChange={(e) => setBeJiraStory(e.target.value)}
-                  placeholder="e.g. JIRA-123" />
+                  placeholder='e.g. JIRA-123' />
               </div>
               <div>
                 <button
-                  className="btn btn-primary"
+                  className='btn btn-primary'
                   style={{ width: '100%' }}
                   onClick={bulkEdit}
                   disabled={bulkEditLoading}
@@ -682,100 +682,100 @@ function TestCasesPage() {
       )}
 
       {/* Filters */}
-      <div className="panel" style={{ marginBottom: 16 }}>
-        <div className="panel-header" style={{ paddingTop: 12, paddingBottom: 12 }}>
+      <div className='panel' style={{ marginBottom: 16 }}>
+        <div className='panel-header' style={{ paddingTop: 12, paddingBottom: 12 }}>
           <h3 style={{ margin: 0, fontSize: 14 }}>Filters</h3>
         </div>
-        <div className="panel-body" style={{ padding: '14px 20px' }}>
+        <div className='panel-body' style={{ padding: '14px 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 10 }}>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Application
                 {fApp && clearBtn(() => { setFApp(''); setFMod(''); })}
               </label>
-              <select className="field-select" value={fApp} onChange={(e) => { setFApp(e.target.value); setFMod(''); }}>
-                <option value="">All</option>
+              <select className='field-select' value={fApp} onChange={(e) => { setFApp(e.target.value); setFMod(''); }}>
+                <option value=''>All</option>
                 {applications.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Module
                 {fMod && clearBtn(() => setFMod(''))}
               </label>
-              <select className="field-select" value={fMod} onChange={(e) => setFMod(e.target.value)}>
-                <option value="">All</option>
+              <select className='field-select' value={fMod} onChange={(e) => setFMod(e.target.value)}>
+                <option value=''>All</option>
                 {filteredModules.map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Status
                 {fStatus && clearBtn(() => setFStatus(''))}
               </label>
-              <select className="field-select" value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
-                <option value="">All</option>
-                <option value="Pass">Pass</option>
-                <option value="Fail">Fail</option>
-                <option value="Pending">Pending</option>
+              <select className='field-select' value={fStatus} onChange={(e) => setFStatus(e.target.value)}>
+                <option value=''>All</option>
+                <option value='Pass'>Pass</option>
+                <option value='Fail'>Fail</option>
+                <option value='Pending'>Pending</option>
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Priority
                 {fPriority && clearBtn(() => setFPriority(''))}
               </label>
-              <select className="field-select" value={fPriority} onChange={(e) => setFPriority(e.target.value)}>
-                <option value="">All</option>
-                <option value="High">High</option>
-                <option value="Medium">Medium</option>
-                <option value="Low">Low</option>
+              <select className='field-select' value={fPriority} onChange={(e) => setFPriority(e.target.value)}>
+                <option value=''>All</option>
+                <option value='High'>High</option>
+                <option value='Medium'>Medium</option>
+                <option value='Low'>Low</option>
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Tested By
                 {fTester && clearBtn(() => setFTester(''))}
               </label>
-              <select className="field-select" value={fTester} onChange={(e) => setFTester(e.target.value)}>
-                <option value="">All</option>
-                <option value="__unassigned__">Unassigned</option>
+              <select className='field-select' value={fTester} onChange={(e) => setFTester(e.target.value)}>
+                <option value=''>All</option>
+                <option value='__unassigned__'>Unassigned</option>
                 {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Assigned To
                 {fAssignedTo && clearBtn(() => setFAssignedTo(''))}
               </label>
-              <select className="field-select" value={fAssignedTo} onChange={(e) => setFAssignedTo(e.target.value)}>
-                <option value="">All</option>
-                <option value="__unassigned__">Unassigned</option>
+              <select className='field-select' value={fAssignedTo} onChange={(e) => setFAssignedTo(e.target.value)}>
+                <option value=''>All</option>
+                <option value='__unassigned__'>Unassigned</option>
                 {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
               </select>
             </div>
-            <div className="field-group">
-              <label className="field-label">Version</label>
-              <input className="field-input" type="search" value={fVersion} onChange={(e) => setFVersion(e.target.value)} placeholder="Any version" />
+            <div className='field-group'>
+              <label className='field-label'>Version</label>
+              <input className='field-input' type='search' value={fVersion} onChange={(e) => setFVersion(e.target.value)} placeholder='Any version' />
             </div>
-            <div className="field-group">
-              <label className="field-label" style={{ display: 'flex', justifyContent: 'space-between' }}>
+            <div className='field-group'>
+              <label className='field-label' style={{ display: 'flex', justifyContent: 'space-between' }}>
                 Jira Story
                 {fJiraStory && clearBtn(() => setFJiraStory(''))}
               </label>
-              <input className="field-input" type="search" value={fJiraStory} onChange={(e) => setFJiraStory(e.target.value)} placeholder="e.g. JIRA-123" />
+              <input className='field-input' type='search' value={fJiraStory} onChange={(e) => setFJiraStory(e.target.value)} placeholder='e.g. JIRA-123' />
             </div>
           </div>
         </div>
       </div>
 
       {/* Table */}
-      <div className="panel">
-        <div className="table-wrap">
+      <div className='panel'>
+        <div className='table-wrap'>
           {loading ? (
             <EmptyState>Loading test cases…</EmptyState>
           ) : totalCount === 0 ? (
-            <EmptyState icon="◎" title="No test cases found">
+            <EmptyState icon='◎' title='No test cases found'>
               <p>Import an Excel file from the Dashboard to populate the grid.</p>
             </EmptyState>
           ) : (
@@ -784,7 +784,7 @@ function TestCasesPage() {
                 <tr>
                   <th style={{ width: 36, textAlign: 'center', padding: '8px 6px' }}>
                     <input
-                      type="checkbox"
+                      type='checkbox'
                       checked={allPageSelected}
                       ref={(el) => { if (el) el.indeterminate = somePageSelected; }}
                       onChange={() => toggleSelectPage(pageIds, allPageSelected)}
@@ -823,13 +823,13 @@ function TestCasesPage() {
             </span>
             <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
               <button
-                className="btn btn-secondary btn-sm"
+                className='btn btn-secondary btn-sm'
                 onClick={() => goToPage(Math.max(1, page - 1))}
                 disabled={page === 1}
               >← Prev</button>
               <span style={{ padding: '0 8px' }}>Page {page} of {totalPages}</span>
               <button
-                className="btn btn-secondary btn-sm"
+                className='btn btn-secondary btn-sm'
                 onClick={() => goToPage(Math.min(totalPages, page + 1))}
                 disabled={page === totalPages}
               >Next →</button>
@@ -840,20 +840,20 @@ function TestCasesPage() {
 
       {/* Add Test Case Modal */}
       {showAddModal && (
-        <Modal title="Add Test Case" onClose={() => { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); }} maxWidth={720} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
+        <Modal title='Add Test Case' onClose={() => { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); }} maxWidth={720} cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}>
           <form onSubmit={addTestCase}>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div className="field-group">
-                  <label className="field-label">Application *</label>
-                  <select className="field-select" required value={addForm.applicationId}
+                <div className='field-group'>
+                  <label className='field-label'>Application *</label>
+                  <select className='field-select' required value={addForm.applicationId}
                     onChange={(e) => setAddForm((f) => ({ ...f, applicationId: e.target.value, moduleId: '' }))}>
-                    <option value="">Select application</option>
+                    <option value=''>Select application</option>
                     {applications.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Module *</label>
-                  <select className="field-select" required value={addForm.moduleId}
+                <div className='field-group'>
+                  <label className='field-label'>Module *</label>
+                  <select className='field-select' required value={addForm.moduleId}
                     onChange={(e) => {
                       if (e.target.value === '__new__') {
                         setAddForm((f) => ({ ...f, moduleId: '' }));
@@ -864,133 +864,133 @@ function TestCasesPage() {
                         setNewModuleName(null);
                       }
                     }}>
-                    <option value="">Select module</option>
-                    <option value="__new__">+ Add new module…</option>
+                    <option value=''>Select module</option>
+                    <option value='__new__'>+ Add new module…</option>
                     {modules.filter((m) => !addForm.applicationId || m.applicationId === addForm.applicationId)
                       .map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
                   </select>
                   {newModuleName !== null && (
                     <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
                       <input
-                        id="new-module-input"
-                        className="field-input"
+                        id='new-module-input'
+                        className='field-input'
                         value={newModuleName}
                         onChange={(e) => setNewModuleName(e.target.value)}
                         onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); createModule(); } }}
-                        placeholder="New module name"
+                        placeholder='New module name'
                         style={{ flex: 1 }}
                       />
-                      <button type="button" className="btn btn-primary btn-sm" onClick={createModule}
+                      <button type='button' className='btn btn-primary btn-sm' onClick={createModule}
                         disabled={creatingModule || !newModuleName.trim()} style={{ whiteSpace: 'nowrap' }}>
                         {creatingModule ? '…' : 'Create'}
                       </button>
-                      <button type="button" className="btn btn-secondary btn-sm"
+                      <button type='button' className='btn btn-secondary btn-sm'
                         onClick={() => setNewModuleName(null)} style={{ padding: '0 8px' }}>×</button>
                     </div>
                   )}
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Test Case ID</label>
-                  <input className="field-input" value={addForm.testCaseId} placeholder="e.g. TC-001"
+                <div className='field-group'>
+                  <label className='field-label'>Test Case ID</label>
+                  <input className='field-input' value={addForm.testCaseId} placeholder='e.g. TC-001'
                     onChange={(e) => setAddForm((f) => ({ ...f, testCaseId: e.target.value }))} />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Type</label>
-                  <input className="field-input" value={addForm.type} placeholder="e.g. Functional"
+                <div className='field-group'>
+                  <label className='field-label'>Type</label>
+                  <input className='field-input' value={addForm.type} placeholder='e.g. Functional'
                     onChange={(e) => setAddForm((f) => ({ ...f, type: e.target.value }))} />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Priority</label>
-                  <select className="field-select" value={addForm.priority}
+                <div className='field-group'>
+                  <label className='field-label'>Priority</label>
+                  <select className='field-select' value={addForm.priority}
                     onChange={(e) => setAddForm((f) => ({ ...f, priority: e.target.value }))}>
-                    <option value="">—</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
+                    <option value=''>—</option>
+                    <option value='High'>High</option>
+                    <option value='Medium'>Medium</option>
+                    <option value='Low'>Low</option>
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Jira Story</label>
-                  <input className="field-input" value={addForm.jiraStory} placeholder="e.g. JIRA-123"
+                <div className='field-group'>
+                  <label className='field-label'>Jira Story</label>
+                  <input className='field-input' value={addForm.jiraStory} placeholder='e.g. JIRA-123'
                     onChange={(e) => setAddForm((f) => ({ ...f, jiraStory: e.target.value }))} />
                 </div>
               </div>
-              <div className="field-group" style={{ marginBottom: 14 }}>
-                <label className="field-label">Test Case *</label>
-                <textarea className="field-input" required rows={2} value={addForm.testCase} placeholder="Describe the test case"
+              <div className='field-group' style={{ marginBottom: 14 }}>
+                <label className='field-label'>Test Case *</label>
+                <textarea className='field-input' required rows={2} value={addForm.testCase} placeholder='Describe the test case'
                   onChange={(e) => setAddForm((f) => ({ ...f, testCase: e.target.value }))}
                   style={{ resize: 'vertical' }} />
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div className="field-group">
-                  <label className="field-label">Preconditions</label>
+                <div className='field-group'>
+                  <label className='field-label'>Preconditions</label>
                   <RichTextEditor
                     value={addForm.preconditions}
                     onChange={(v) => setAddForm((f) => ({ ...f, preconditions: v }))}
-                    placeholder="List any preconditions…"
+                    placeholder='List any preconditions…'
                     minHeight={72}
                   />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Steps</label>
+                <div className='field-group'>
+                  <label className='field-label'>Steps</label>
                   <RichTextEditor
                     value={addForm.steps}
                     onChange={(v) => setAddForm((f) => ({ ...f, steps: v }))}
-                    placeholder="1. Step one&#10;2. Step two…"
+                    placeholder='1. Step one&#10;2. Step two…'
                     minHeight={72}
                   />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Expected Result *</label>
+                <div className='field-group'>
+                  <label className='field-label'>Expected Result *</label>
                   <RichTextEditor
                     value={addForm.expectedResult}
                     onChange={(v) => setAddForm((f) => ({ ...f, expectedResult: v }))}
-                    placeholder="Describe the expected outcome…"
+                    placeholder='Describe the expected outcome…'
                     minHeight={72}
                   />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Actual Result</label>
+                <div className='field-group'>
+                  <label className='field-label'>Actual Result</label>
                   <RichTextEditor
                     value={addForm.actualResult}
                     onChange={(v) => setAddForm((f) => ({ ...f, actualResult: v }))}
-                    placeholder="Describe the actual outcome…"
+                    placeholder='Describe the actual outcome…'
                     minHeight={72}
                   />
                 </div>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
-                <div className="field-group">
-                  <label className="field-label">Status</label>
-                  <select className="field-select" value={addForm.status}
+                <div className='field-group'>
+                  <label className='field-label'>Status</label>
+                  <select className='field-select' value={addForm.status}
                     onChange={(e) => setAddForm((f) => ({ ...f, status: e.target.value }))}>
-                    <option value="">Pending</option>
-                    <option value="Pass">Pass</option>
-                    <option value="Fail">Fail</option>
+                    <option value=''>Pending</option>
+                    <option value='Pass'>Pass</option>
+                    <option value='Fail'>Fail</option>
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Tested By</label>
-                  <select className="field-select" value={addForm.testedBy}
+                <div className='field-group'>
+                  <label className='field-label'>Tested By</label>
+                  <select className='field-select' value={addForm.testedBy}
                     onChange={(e) => setAddForm((f) => ({ ...f, testedBy: e.target.value }))}>
-                    <option value="">—</option>
+                    <option value=''>—</option>
                     {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Tested On</label>
-                  <input className="field-input" type="date" value={addForm.testedOn}
+                <div className='field-group'>
+                  <label className='field-label'>Tested On</label>
+                  <input className='field-input' type='date' value={addForm.testedOn}
                     onChange={(e) => setAddForm((f) => ({ ...f, testedOn: e.target.value }))} />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Version</label>
-                  <input className="field-input" value={addForm.softwareVersionTested} placeholder={bVersion || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Version</label>
+                  <input className='field-input' value={addForm.softwareVersionTested} placeholder={bVersion || ''}
                     onChange={(e) => setAddForm((f) => ({ ...f, softwareVersionTested: e.target.value }))} />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); }}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={addSaving}>
+                <button type='button' className='btn btn-secondary' onClick={() => { setShowAddModal(false); setAddForm(EMPTY_FORM); setNewModuleName(null); }}>Cancel</button>
+                <button type='submit' className='btn btn-primary' disabled={addSaving}>
                   {addSaving ? 'Saving…' : 'Add Test Case'}
                 </button>
               </div>
@@ -1004,145 +1004,145 @@ function TestCasesPage() {
           <form onSubmit={saveEdit}>
               {/* Application, Module, Priority, Jira Story */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div className="field-group">
-                  <label className="field-label">Application</label>
-                  <select className="field-select" value={editForm.applicationId}
+                <div className='field-group'>
+                  <label className='field-label'>Application</label>
+                  <select className='field-select' value={editForm.applicationId}
                     onChange={(e) => setEditForm((f) => ({ ...f, applicationId: e.target.value, moduleId: '' }))}>
-                    <option value="">—</option>
+                    <option value=''>—</option>
                     {applications.map((a) => <option key={a._id} value={a._id}>{a.name}</option>)}
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Module</label>
-                  <select className="field-select" value={editForm.moduleId}
+                <div className='field-group'>
+                  <label className='field-label'>Module</label>
+                  <select className='field-select' value={editForm.moduleId}
                     onChange={(e) => setEditForm((f) => ({ ...f, moduleId: e.target.value }))}>
-                    <option value="">—</option>
+                    <option value=''>—</option>
                     {modules.filter((m) => !editForm.applicationId || m.applicationId === editForm.applicationId)
                       .map((m) => <option key={m._id} value={m._id}>{m.name}</option>)}
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Priority</label>
-                  <select className="field-select" value={editForm.priority || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Priority</label>
+                  <select className='field-select' value={editForm.priority || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, priority: e.target.value }))}>
-                    <option value="">—</option>
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
+                    <option value=''>—</option>
+                    <option value='High'>High</option>
+                    <option value='Medium'>Medium</option>
+                    <option value='Low'>Low</option>
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Jira Story</label>
-                  <input className="field-input" value={editForm.jiraStory || ''} placeholder="e.g. JIRA-123"
+                <div className='field-group'>
+                  <label className='field-label'>Jira Story</label>
+                  <input className='field-input' value={editForm.jiraStory || ''} placeholder='e.g. JIRA-123'
                     onChange={(e) => setEditForm((f) => ({ ...f, jiraStory: e.target.value }))} />
                 </div>
               </div>
               {/* ID, Type, Traceability */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div className="field-group">
-                  <label className="field-label">Test Case ID</label>
-                  <input className="field-input" value={editForm.testCaseId || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Test Case ID</label>
+                  <input className='field-input' value={editForm.testCaseId || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, testCaseId: e.target.value }))} />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Type</label>
-                  <input className="field-input" value={editForm.type || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Type</label>
+                  <input className='field-input' value={editForm.type || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, type: e.target.value }))} />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Traceability</label>
-                  <input className="field-input" value={editForm.traceability || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Traceability</label>
+                  <input className='field-input' value={editForm.traceability || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, traceability: e.target.value }))} />
                 </div>
               </div>
               {/* Test Case */}
-              <div className="field-group" style={{ marginBottom: 14 }}>
-                <label className="field-label">Test Case</label>
-                <textarea className="field-input" rows={2} value={editForm.testCase || ''}
+              <div className='field-group' style={{ marginBottom: 14 }}>
+                <label className='field-label'>Test Case</label>
+                <textarea className='field-input' rows={2} value={editForm.testCase || ''}
                   onChange={(e) => setEditForm((f) => ({ ...f, testCase: e.target.value }))}
                   style={{ resize: 'vertical' }} />
               </div>
               {/* Preconditions, Steps */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div className="field-group">
-                  <label className="field-label">Preconditions</label>
+                <div className='field-group'>
+                  <label className='field-label'>Preconditions</label>
                   <RichTextEditor
                     value={editForm.preconditions || ''}
                     onChange={(v) => setEditForm((f) => ({ ...f, preconditions: v }))}
-                    placeholder="List any preconditions…"
+                    placeholder='List any preconditions…'
                     minHeight={80}
                   />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Steps</label>
+                <div className='field-group'>
+                  <label className='field-label'>Steps</label>
                   <RichTextEditor
                     value={editForm.steps || ''}
                     onChange={(v) => setEditForm((f) => ({ ...f, steps: v }))}
-                    placeholder="1. Navigate to…"
+                    placeholder='1. Navigate to…'
                     minHeight={80}
                   />
                 </div>
               </div>
               {/* Expected, Actual */}
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14, marginBottom: 14 }}>
-                <div className="field-group">
-                  <label className="field-label">Expected Result</label>
+                <div className='field-group'>
+                  <label className='field-label'>Expected Result</label>
                   <RichTextEditor
                     value={editForm.expectedResult || ''}
                     onChange={(v) => setEditForm((f) => ({ ...f, expectedResult: v }))}
-                    placeholder="Describe the expected outcome…"
+                    placeholder='Describe the expected outcome…'
                     minHeight={80}
                   />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Actual Result</label>
+                <div className='field-group'>
+                  <label className='field-label'>Actual Result</label>
                   <RichTextEditor
                     value={editForm.actualResult || ''}
                     onChange={(v) => setEditForm((f) => ({ ...f, actualResult: v }))}
-                    placeholder="Describe the actual outcome…"
+                    placeholder='Describe the actual outcome…'
                     minHeight={80}
                   />
                 </div>
               </div>
               {/* Defects */}
-              <div className="field-group" style={{ marginBottom: 14 }}>
-                <label className="field-label">Defects / Improvements</label>
-                <input className="field-input" value={editForm.defectsImprovements || ''}
+              <div className='field-group' style={{ marginBottom: 14 }}>
+                <label className='field-label'>Defects / Improvements</label>
+                <input className='field-input' value={editForm.defectsImprovements || ''}
                   onChange={(e) => setEditForm((f) => ({ ...f, defectsImprovements: e.target.value }))} />
               </div>
               {/* Status, Tested By, Tested On, Version */}
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 20 }}>
-                <div className="field-group">
-                  <label className="field-label">Status</label>
-                  <select className="field-select" value={editForm.status || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Status</label>
+                  <select className='field-select' value={editForm.status || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, status: e.target.value }))}>
-                    <option value="">Pending</option>
-                    <option value="Pass">Pass</option>
-                    <option value="Fail">Fail</option>
+                    <option value=''>Pending</option>
+                    <option value='Pass'>Pass</option>
+                    <option value='Fail'>Fail</option>
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Tested By</label>
-                  <select className="field-select" value={editForm.testedBy || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Tested By</label>
+                  <select className='field-select' value={editForm.testedBy || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, testedBy: e.target.value }))}>
-                    <option value="">—</option>
+                    <option value=''>—</option>
                     {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Tested On</label>
-                  <input className="field-input" type="date" value={toDateInputValue(editForm.testedOn || '')}
+                <div className='field-group'>
+                  <label className='field-label'>Tested On</label>
+                  <input className='field-input' type='date' value={toDateInputValue(editForm.testedOn || '')}
                     onChange={(e) => setEditForm((f) => ({ ...f, testedOn: e.target.value }))} />
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Version</label>
-                  <input className="field-input" value={editForm.softwareVersionTested || ''}
+                <div className='field-group'>
+                  <label className='field-label'>Version</label>
+                  <input className='field-input' value={editForm.softwareVersionTested || ''}
                     onChange={(e) => setEditForm((f) => ({ ...f, softwareVersionTested: e.target.value }))} />
                 </div>
               </div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setEditTc(null)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={editSaving}>
+                <button type='button' className='btn btn-secondary' onClick={() => setEditTc(null)}>Cancel</button>
+                <button type='submit' className='btn btn-primary' disabled={editSaving}>
                   {editSaving ? 'Saving…' : 'Save Changes'}
                 </button>
               </div>
@@ -1154,33 +1154,33 @@ function TestCasesPage() {
       {showAssignModal && (
         <Modal title={`Assign ${selectedIds.size} Test Case${selectedIds.size !== 1 ? 's' : ''}`} onClose={() => setShowAssignModal(false)} maxWidth={460}>
           <form onSubmit={assignTestCases} style={{ display: 'grid', gap: 14 }}>
-              <div className="field-group">
-                <label className="field-label">Title <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
+              <div className='field-group'>
+                <label className='field-label'>Title <span style={{ color: 'var(--muted)', fontWeight: 400 }}>(optional)</span></label>
                 <input
-                  className="field-input"
-                  type="text"
+                  className='field-input'
+                  type='text'
                   value={assignForm.title}
                   onChange={(e) => setAssignForm((f) => ({ ...f, title: e.target.value }))}
-                  placeholder="e.g. Login flow — sprint 12"
+                  placeholder='e.g. Login flow — sprint 12'
                 />
               </div>
-              <div className="field-group">
-                <label className="field-label">Assign to</label>
+              <div className='field-group'>
+                <label className='field-label'>Assign to</label>
                 <select
-                  className="field-select"
+                  className='field-select'
                   value={assignForm.assignedTo}
                   onChange={(e) => setAssignForm((f) => ({ ...f, assignedTo: e.target.value }))}
                   required
                 >
-                  <option value="">Select team member…</option>
+                  <option value=''>Select team member…</option>
                   {qaUsers.map((u) => <option key={u} value={u}>{u}</option>)}
                 </select>
               </div>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-                <div className="field-group">
-                  <label className="field-label">Priority</label>
+                <div className='field-group'>
+                  <label className='field-label'>Priority</label>
                   <select
-                    className="field-select"
+                    className='field-select'
                     value={assignForm.priority}
                     onChange={(e) => setAssignForm((f) => ({ ...f, priority: e.target.value }))}
                   >
@@ -1189,30 +1189,30 @@ function TestCasesPage() {
                     <option>Low</option>
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">Due date</label>
+                <div className='field-group'>
+                  <label className='field-label'>Due date</label>
                   <input
-                    className="field-input"
-                    type="date"
+                    className='field-input'
+                    type='date'
                     value={assignForm.dueDate}
                     onChange={(e) => setAssignForm((f) => ({ ...f, dueDate: e.target.value }))}
                   />
                 </div>
               </div>
-              <div className="field-group">
-                <label className="field-label">Notes</label>
+              <div className='field-group'>
+                <label className='field-label'>Notes</label>
                 <textarea
-                  className="field-input"
+                  className='field-input'
                   rows={2}
                   value={assignForm.notes}
                   onChange={(e) => setAssignForm((f) => ({ ...f, notes: e.target.value }))}
-                  placeholder="Optional context or instructions…"
+                  placeholder='Optional context or instructions…'
                   style={{ resize: 'vertical' }}
                 />
               </div>
               <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-                <button type="button" className="btn btn-secondary" onClick={() => setShowAssignModal(false)}>Cancel</button>
-                <button type="submit" className="btn btn-primary" disabled={assignSaving || !assignForm.assignedTo}>
+                <button type='button' className='btn btn-secondary' onClick={() => setShowAssignModal(false)}>Cancel</button>
+                <button type='submit' className='btn btn-primary' disabled={assignSaving || !assignForm.assignedTo}>
                   {assignSaving ? 'Assigning…' : `Assign to ${assignForm.assignedTo || '…'}`}
                 </button>
               </div>

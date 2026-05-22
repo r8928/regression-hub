@@ -31,7 +31,7 @@ describe('dateStamp', () => {
     vi.useRealTimers();
   });
 
-  it('returns today\'s date in YYYY-MM-DD format', () => {
+  it("returns today's date in YYYY-MM-DD format", () => {
     expect(dateStamp()).toBe('2025-03-15');
   });
 });

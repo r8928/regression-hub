@@ -58,10 +58,10 @@ export default async function ModulesPage() {
 
   return (
     <div>
-      <PageHeader eyebrow="Registry" title="Modules" sub={`${modules.length} modules across ${appNames.length} application${appNames.length !== 1 ? 's' : ''}`} />
+      <PageHeader eyebrow='Registry' title='Modules' sub={`${modules.length} modules across ${appNames.length} application${appNames.length !== 1 ? 's' : ''}`} />
 
       {modules.length === 0 ? (
-        <EmptyState icon="⊞" title="No modules yet">
+        <EmptyState icon='⊞' title='No modules yet'>
           <p>Modules are created automatically from the Module column in your Excel file.</p>
         </EmptyState>
       ) : (
@@ -79,8 +79,8 @@ export default async function ModulesPage() {
             );
 
             return (
-              <div key={appName} className="panel">
-                <div className="panel-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <div key={appName} className='panel'>
+                <div className='panel-header' style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                   <h3 style={{ margin: 0 }}>{appName}</h3>
                   <div style={{ display: 'flex', gap: 10, fontSize: 12 }}>
                     <span style={{ color: 'var(--muted)' }}>{appModules.length} module{appModules.length !== 1 ? 's' : ''}</span>
@@ -114,7 +114,7 @@ export default async function ModulesPage() {
                           <td style={{ color: 'var(--pending)', fontWeight: 500 }}>{g.pending}</td>
                           <td>
                             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                              <div className="progress-bar" style={{ flex: 1, maxWidth: 80, display: 'flex', overflow: 'hidden' }}>
+                              <div className='progress-bar' style={{ flex: 1, maxWidth: 80, display: 'flex', overflow: 'hidden' }}>
                                 {g.passed > 0 && <div style={{ width: `${(g.passed / g.total) * 100}%`, height: '100%', background: 'var(--pass)', transition: 'width 300ms' }} />}
                                 {g.failed > 0 && <div style={{ width: `${(g.failed / g.total) * 100}%`, height: '100%', background: 'var(--fail)', transition: 'width 300ms' }} />}
                               </div>

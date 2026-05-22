@@ -173,7 +173,7 @@ export default function UsersPage() {
   }
 
   if (status === 'loading' || session?.user?.role !== 'admin') {
-    return <div className="empty-state">Loading…</div>;
+    return <div className='empty-state'>Loading…</div>;
   }
 
   const locationStyle = LOCATION_STYLE[session.user.teamId] || LOCATION_STYLE.radius;
@@ -186,20 +186,20 @@ export default function UsersPage() {
 
       {/* Header */}
       <PageHeader
-        eyebrow="Admin"
-        title="User Management"
+        eyebrow='Admin'
+        title='User Management'
         sub={<><span style={{ display: 'inline-block', padding: '2px 10px', borderRadius: 20, fontSize: 11, fontWeight: 700, background: locationStyle.bg, border: `1px solid ${locationStyle.border}`, color: locationStyle.color }}>{locationStyle.label}</span>{activeUsers.length} active · {inactiveUsers.length} inactive</>}
         subStyle={{ display: 'flex', alignItems: 'center', gap: 8 }}
-        actions={<button className="btn btn-primary" onClick={() => { setAddForm(EMPTY_FORM); setShowAdd(true); }}>+ Add User</button>}
+        actions={<button className='btn btn-primary' onClick={() => { setAddForm(EMPTY_FORM); setShowAdd(true); }}>+ Add User</button>}
       />
 
       {/* Role permissions info */}
-      <div className="panel" style={{ marginBottom: 20, background: 'linear-gradient(135deg, rgba(13,148,136,0.04), rgba(8,145,178,0.04))', border: '1px solid rgba(13,148,136,0.15)' }}>
-        <div className="panel-body" style={{ padding: '14px 20px' }}>
+      <div className='panel' style={{ marginBottom: 20, background: 'linear-gradient(135deg, rgba(13,148,136,0.04), rgba(8,145,178,0.04))', border: '1px solid rgba(13,148,136,0.15)' }}>
+        <div className='panel-body' style={{ padding: '14px 20px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <RoleBadge role="admin" />
+                <RoleBadge role='admin' />
                 <span style={{ fontWeight: 600, fontSize: 13 }}>Admin</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 3 }}>
@@ -212,7 +212,7 @@ export default function UsersPage() {
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
-                <RoleBadge role="qa" />
+                <RoleBadge role='qa' />
                 <span style={{ fontWeight: 600, fontSize: 13 }}>QA</span>
               </div>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'grid', gap: 3 }}>
@@ -234,10 +234,10 @@ export default function UsersPage() {
 
       {/* Users Table */}
       {loading ? (
-        <div className="empty-state">Loading users…</div>
+        <div className='empty-state'>Loading users…</div>
       ) : (
-        <div className="panel">
-          <div className="table-wrap">
+        <div className='panel'>
+          <div className='table-wrap'>
             <table>
               <thead>
                 <tr>
@@ -267,7 +267,7 @@ export default function UsersPage() {
                         <td>
                           {isEditing ? (
                             <input
-                              className="field-input"
+                              className='field-input'
                               style={{ padding: '4px 8px', fontSize: 13 }}
                               value={editForm.name}
                               onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
@@ -285,13 +285,13 @@ export default function UsersPage() {
                         <td>
                           {isEditing ? (
                             <select
-                              className="field-select"
+                              className='field-select'
                               style={{ padding: '4px 8px', fontSize: 13 }}
                               value={editForm.role}
                               onChange={(e) => setEditForm((f) => ({ ...f, role: e.target.value }))}
                             >
-                              <option value="admin">Admin</option>
-                              <option value="qa">QA</option>
+                              <option value='admin'>Admin</option>
+                              <option value='qa'>QA</option>
                             </select>
                           ) : (
                             <RoleBadge role={user.role} />
@@ -313,22 +313,22 @@ export default function UsersPage() {
                         <td style={{ textAlign: 'right' }}>
                           {isEditing ? (
                             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
-                              <button className="btn btn-secondary btn-sm" onClick={() => setEditId(null)}>Cancel</button>
-                              <button className="btn btn-primary btn-sm" onClick={() => saveEdit(user._id)} disabled={editSaving}>
+                              <button className='btn btn-secondary btn-sm' onClick={() => setEditId(null)}>Cancel</button>
+                              <button className='btn btn-primary btn-sm' onClick={() => saveEdit(user._id)} disabled={editSaving}>
                                 {editSaving ? 'Saving…' : 'Save'}
                               </button>
                             </div>
                           ) : (
                             <div style={{ display: 'flex', gap: 6, justifyContent: 'flex-end' }}>
                               <button
-                                className="btn btn-secondary btn-sm"
+                                className='btn btn-secondary btn-sm'
                                 onClick={() => { setEditId(user._id); setEditForm({ name: user.name, role: user.role }); }}
-                                title="Edit name / role"
+                                title='Edit name / role'
                               >Edit</button>
                               <button
-                                className="btn btn-secondary btn-sm"
+                                className='btn btn-secondary btn-sm'
                                 onClick={() => { setPwdId(user._id); setPwdForm(EMPTY_PWD); }}
-                                title="Change password"
+                                title='Change password'
                               >Password</button>
                               {!isSelf && (
                                 <button
@@ -355,25 +355,25 @@ export default function UsersPage() {
 
       {/* Add User Modal */}
       {showAdd && (
-        <Modal title="Add New User" onClose={() => { setShowAdd(false); setAddForm(EMPTY_FORM); }}>
+        <Modal title='Add New User' onClose={() => { setShowAdd(false); setAddForm(EMPTY_FORM); }}>
           <form onSubmit={createUser} style={{ display: 'grid', gap: 14 }}>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="field-group">
-                <label className="field-label">Full name</label>
-                <input className="field-input" type="text" value={addForm.name} onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. Maria" required />
+              <div className='field-group'>
+                <label className='field-label'>Full name</label>
+                <input className='field-input' type='text' value={addForm.name} onChange={(e) => setAddForm((f) => ({ ...f, name: e.target.value }))} placeholder='e.g. Maria' required />
               </div>
-              <div className="field-group">
-                <label className="field-label">Username</label>
-                <input className="field-input" type="text" value={addForm.username} onChange={(e) => setAddForm((f) => ({ ...f, username: e.target.value.toLowerCase().replace(/\s/g, '') }))} placeholder="e.g. maria" required />
+              <div className='field-group'>
+                <label className='field-label'>Username</label>
+                <input className='field-input' type='text' value={addForm.username} onChange={(e) => setAddForm((f) => ({ ...f, username: e.target.value.toLowerCase().replace(/\s/g, '') }))} placeholder='e.g. maria' required />
               </div>
             </div>
-            <div className="field-group">
-              <label className="field-label">Role</label>
+            <div className='field-group'>
+              <label className='field-label'>Role</label>
               <div style={{ display: 'flex', gap: 8 }}>
                 {['qa', 'admin'].map((r) => (
                   <button
                     key={r}
-                    type="button"
+                    type='button'
                     onClick={() => setAddForm((f) => ({ ...f, role: r }))}
                     style={{
                       flex: 1, padding: '8px 12px', borderRadius: 8, cursor: 'pointer', fontSize: 13,
@@ -392,21 +392,21 @@ export default function UsersPage() {
               </p>
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-              <div className="field-group">
-                <label className="field-label">Password</label>
-                <input className="field-input" type="password" value={addForm.password} onChange={(e) => setAddForm((f) => ({ ...f, password: e.target.value }))} placeholder="Min. 8 characters" required minLength={8} />
+              <div className='field-group'>
+                <label className='field-label'>Password</label>
+                <input className='field-input' type='password' value={addForm.password} onChange={(e) => setAddForm((f) => ({ ...f, password: e.target.value }))} placeholder='Min. 8 characters' required minLength={8} />
               </div>
-              <div className="field-group">
-                <label className="field-label">Confirm password</label>
-                <input className="field-input" type="password" value={addForm.confirmPassword} onChange={(e) => setAddForm((f) => ({ ...f, confirmPassword: e.target.value }))} placeholder="Repeat password" required />
+              <div className='field-group'>
+                <label className='field-label'>Confirm password</label>
+                <input className='field-input' type='password' value={addForm.confirmPassword} onChange={(e) => setAddForm((f) => ({ ...f, confirmPassword: e.target.value }))} placeholder='Repeat password' required />
               </div>
             </div>
             <div style={{ padding: '10px 14px', background: 'rgba(13,148,136,0.06)', borderRadius: 8, border: '1px solid rgba(13,148,136,0.2)', fontSize: 12, color: 'var(--muted)' }}>
               This user will be added to the <strong style={{ color: 'var(--fg)' }}>{session.user.teamName}</strong> location and can only see that location&apos;s data.
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button type="button" className="btn btn-secondary" onClick={() => { setShowAdd(false); setAddForm(EMPTY_FORM); }}>Cancel</button>
-              <button type="submit" className="btn btn-primary" disabled={addSaving}>
+              <button type='button' className='btn btn-secondary' onClick={() => { setShowAdd(false); setAddForm(EMPTY_FORM); }}>Cancel</button>
+              <button type='submit' className='btn btn-primary' disabled={addSaving}>
                 {addSaving ? 'Creating…' : 'Create User'}
               </button>
             </div>
@@ -418,17 +418,17 @@ export default function UsersPage() {
       {pwdId && (
         <Modal title={`Change Password — ${users.find((u) => u._id === pwdId)?.name}`} onClose={() => { setPwdId(null); setPwdForm(EMPTY_PWD); }}>
           <div style={{ display: 'grid', gap: 14 }}>
-            <div className="field-group">
-              <label className="field-label">New password</label>
-              <input className="field-input" type="password" value={pwdForm.password} onChange={(e) => setPwdForm((f) => ({ ...f, password: e.target.value }))} placeholder="Min. 8 characters" />
+            <div className='field-group'>
+              <label className='field-label'>New password</label>
+              <input className='field-input' type='password' value={pwdForm.password} onChange={(e) => setPwdForm((f) => ({ ...f, password: e.target.value }))} placeholder='Min. 8 characters' />
             </div>
-            <div className="field-group">
-              <label className="field-label">Confirm password</label>
-              <input className="field-input" type="password" value={pwdForm.confirmPassword} onChange={(e) => setPwdForm((f) => ({ ...f, confirmPassword: e.target.value }))} placeholder="Repeat password" />
+            <div className='field-group'>
+              <label className='field-label'>Confirm password</label>
+              <input className='field-input' type='password' value={pwdForm.confirmPassword} onChange={(e) => setPwdForm((f) => ({ ...f, confirmPassword: e.target.value }))} placeholder='Repeat password' />
             </div>
             <div style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}>
-              <button className="btn btn-secondary" onClick={() => { setPwdId(null); setPwdForm(EMPTY_PWD); }}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => savePassword(pwdId)} disabled={pwdSaving || !pwdForm.password || pwdForm.password.length < 8}>
+              <button className='btn btn-secondary' onClick={() => { setPwdId(null); setPwdForm(EMPTY_PWD); }}>Cancel</button>
+              <button className='btn btn-primary' onClick={() => savePassword(pwdId)} disabled={pwdSaving || !pwdForm.password || pwdForm.password.length < 8}>
                 {pwdSaving ? 'Saving…' : 'Update Password'}
               </button>
             </div>
