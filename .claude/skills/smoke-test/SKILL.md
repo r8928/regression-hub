@@ -31,6 +31,8 @@ After `npm test` is green and before opening a PR or marking a task done. Skip i
 - Touched `/api/versions` or polling? In Network tab confirm `Cache-Control: no-store` and 15s repolling.
 - Touched fonts/CSP? In Network tab filter "font"; confirm only `/_next/static/media/*.woff2`, no `fonts.g*.com`.
 - Touched `/import-cases`? Upload a valid `.xlsx` (success) and a `.csv` (client-side reject).
+- Touched API auth / `withTeam`? Sign in as a user with no `teamId` (if available in seed data); protected API calls must return `401` with `{ error: 'Unauthorized' }`, not `400 Account has no team assigned`.
+- Touched admin clear-all / test-cases reset? On `/test-cases`, **Clear All Data** must prompt for typed `RESET`, then call `POST /api/test-cases/reset-team` with `{ confirm: 'RESET' }` (not `DELETE /api/test-cases`). Confirm five team collections are wiped.
 
 Pick only the ones that overlap the current diff. Don't run the full matrix every time.
 
