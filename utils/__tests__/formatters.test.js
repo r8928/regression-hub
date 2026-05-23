@@ -1,5 +1,10 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { normalizedStatus, dateStamp, toDateInputValue, normalizeText } from '../formatters';
+import {
+  normalizedStatus,
+  dateStamp,
+  toDateInputValue,
+  normalizeText,
+} from '../formatters';
 
 describe('normalizedStatus', () => {
   it('returns Pass unchanged', () => {
@@ -57,7 +62,9 @@ describe('toDateInputValue', () => {
   });
 
   it('accepts a Date object', () => {
-    expect(toDateInputValue(new Date('2024-06-01T00:00:00Z'))).toBe('2024-06-01');
+    expect(toDateInputValue(new Date('2024-06-01T00:00:00Z'))).toBe(
+      '2024-06-01',
+    );
   });
 });
 

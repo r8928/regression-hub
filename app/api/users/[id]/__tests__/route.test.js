@@ -45,7 +45,7 @@ describe('PATCH /api/users/[id]', () => {
       't1',
       'abc',
       { name: 'New' },
-      { sessionUserId: 'u1' }
+      { sessionUserId: 'u1' },
     );
   });
 });

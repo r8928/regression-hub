@@ -8,16 +8,18 @@ const { bulkUpdateTestCases, checkRateLimit } = vi.hoisted(() => ({
 }));
 
 vi.mock('@/lib/server/withTeam', () => ({
-  withTeam: (handler) => (req, ctx) => handler(req, ctx, {
-    session: { user: { id: 'u1', teamId: 't1', role: 'qa' } },
-    teamId: 't1',
-    db,
-  }),
-  withAdmin: (handler) => (req, ctx) => handler(req, ctx, {
-    session: { user: { id: 'u1', teamId: 't1', role: 'admin' } },
-    teamId: 't1',
-    db,
-  }),
+  withTeam: (handler) => (req, ctx) =>
+    handler(req, ctx, {
+      session: { user: { id: 'u1', teamId: 't1', role: 'qa' } },
+      teamId: 't1',
+      db,
+    }),
+  withAdmin: (handler) => (req, ctx) =>
+    handler(req, ctx, {
+      session: { user: { id: 'u1', teamId: 't1', role: 'admin' } },
+      teamId: 't1',
+      db,
+    }),
 }));
 
 vi.mock('@/lib/db/testCasesBulkData', () => ({ bulkUpdateTestCases }));

@@ -3,7 +3,7 @@ import { render, screen } from '@testing-library/react';
 import ImportCasesClient from '../ImportCasesClient';
 
 vi.mock('@/components/UploadExcel', () => ({
-  default: () => <div data-testid="upload-excel" />,
+  default: () => <div data-testid='upload-excel' />,
 }));
 
 vi.mock('@/components/Toast', () => ({
@@ -13,7 +13,9 @@ vi.mock('@/components/Toast', () => ({
 describe('ImportCasesClient', () => {
   it('renders the "Import Test Cases" page header title', () => {
     render(<ImportCasesClient />);
-    expect(screen.getByRole('heading', { name: 'Import Test Cases' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Import Test Cases' }),
+    ).toBeInTheDocument();
   });
 
   it('renders the UploadExcel component', () => {
@@ -23,6 +25,8 @@ describe('ImportCasesClient', () => {
 
   it('renders correctly without any props', () => {
     render(<ImportCasesClient />);
-    expect(screen.getByRole('heading', { name: 'Import Test Cases' })).toBeInTheDocument();
+    expect(
+      screen.getByRole('heading', { name: 'Import Test Cases' }),
+    ).toBeInTheDocument();
   });
 });

@@ -8,8 +8,11 @@ import { useEffect } from 'react';
 function ToolBtn({ onClick, active, title, children }) {
   return (
     <button
-      type="button"
-      onMouseDown={(e) => { e.preventDefault(); onClick(); }}
+      type='button'
+      onMouseDown={(e) => {
+        e.preventDefault();
+        onClick();
+      }}
       title={title}
       style={{
         background: active ? 'var(--accent, #0d9488)' : 'transparent',
@@ -31,7 +34,12 @@ function ToolBtn({ onClick, active, title, children }) {
 
 // ── Editor ──────────────────────────────────────────────────────────────────
 /** @see {@link __tests__/RichTextEditor.test.jsx} */
-export default function RichTextEditor({ value, onChange, placeholder, minHeight = 80 }) {
+export default function RichTextEditor({
+  value,
+  onChange,
+  placeholder,
+  minHeight = 80,
+}) {
   const editor = useEditor({
     extensions: [StarterKit],
     content: value || '',
@@ -58,23 +66,69 @@ export default function RichTextEditor({ value, onChange, placeholder, minHeight
   if (!editor) return null;
 
   return (
-    <div className="rte-wrap">
+    <div className='rte-wrap'>
       {/* Toolbar */}
-      <div className="rte-toolbar">
-        <ToolBtn onClick={() => editor.chain().focus().toggleBold().run()} active={editor.isActive('bold')} title="Bold">B</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleItalic().run()} active={editor.isActive('italic')} title="Italic"><em>I</em></ToolBtn>
-        <span style={{ width: 1, background: 'var(--line, #e2e8f0)', alignSelf: 'stretch', margin: '0 4px' }} />
-        <ToolBtn onClick={() => editor.chain().focus().toggleBulletList().run()} active={editor.isActive('bulletList')} title="Bullet list">• List</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().toggleOrderedList().run()} active={editor.isActive('orderedList')} title="Numbered list">1. List</ToolBtn>
-        <span style={{ width: 1, background: 'var(--line, #e2e8f0)', alignSelf: 'stretch', margin: '0 4px' }} />
-        <ToolBtn onClick={() => editor.chain().focus().liftListItem('listItem').run()} title="Outdent">⇤</ToolBtn>
-        <ToolBtn onClick={() => editor.chain().focus().sinkListItem('listItem').run()} title="Indent">⇥</ToolBtn>
+      <div className='rte-toolbar'>
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleBold().run()}
+          active={editor.isActive('bold')}
+          title='Bold'
+        >
+          B
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleItalic().run()}
+          active={editor.isActive('italic')}
+          title='Italic'
+        >
+          <em>I</em>
+        </ToolBtn>
+        <span
+          style={{
+            width: 1,
+            background: 'var(--line, #e2e8f0)',
+            alignSelf: 'stretch',
+            margin: '0 4px',
+          }}
+        />
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleBulletList().run()}
+          active={editor.isActive('bulletList')}
+          title='Bullet list'
+        >
+          • List
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().toggleOrderedList().run()}
+          active={editor.isActive('orderedList')}
+          title='Numbered list'
+        >
+          1. List
+        </ToolBtn>
+        <span
+          style={{
+            width: 1,
+            background: 'var(--line, #e2e8f0)',
+            alignSelf: 'stretch',
+            margin: '0 4px',
+          }}
+        />
+        <ToolBtn
+          onClick={() => editor.chain().focus().liftListItem('listItem').run()}
+          title='Outdent'
+        >
+          ⇤
+        </ToolBtn>
+        <ToolBtn
+          onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
+          title='Indent'
+        >
+          ⇥
+        </ToolBtn>
       </div>
       {/* Content area */}
       <EditorContent editor={editor} />
-      {!value && (
-        <div className="rte-placeholder">{placeholder}</div>
-      )}
+      {!value && <div className='rte-placeholder'>{placeholder}</div>}
     </div>
   );
 }

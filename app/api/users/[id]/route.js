@@ -14,7 +14,7 @@ export const PATCH = withAdmin(
       sessionUserId: session.user.id,
     });
     return NextResponse.json(result);
-  }
+  },
 );
 
 export const DELETE = withAdmin(
@@ -24,5 +24,5 @@ export const DELETE = withAdmin(
       sessionUserId: session.user.id,
     });
     return NextResponse.json(result);
-  }
+  },
 );

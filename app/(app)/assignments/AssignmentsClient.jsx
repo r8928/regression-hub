@@ -1,30 +1,35 @@
-"use client";
+'use client';
 
-import EmptyState from "@/components/EmptyState";
-import Modal from "@/components/Modal";
-import PageHeader from "@/components/PageHeader";
-import PriorityBadge from "@/components/PriorityBadge";
-import ToastProvider, { showToast } from "@/components/Toast";
+import EmptyState from '@/components/EmptyState';
+import Modal from '@/components/Modal';
+import PageHeader from '@/components/PageHeader';
+import PriorityBadge from '@/components/PriorityBadge';
+import ToastProvider, { showToast } from '@/components/Toast';
 import {
   createAssignment as apiCreateAssignment,
   deleteAssignment as apiDeleteAssignment,
   updateAssignment as apiUpdateAssignment,
-} from "@/lib/api/assignments";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+} from '@/lib/api/assignments';
+import {
+  ASSIGNMENT_STATUS,
+  PRIORITIES,
+  PRIORITY_DEFAULT,
+} from '@/lib/constants';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 function ProgressBar({ completed, total }) {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const color = pct === 100 ? "#16a34a" : pct > 50 ? "#0891b2" : "#d97706";
+  const color = pct === 100 ? '#16a34a' : pct > 50 ? '#0891b2' : '#d97706';
   return (
     <div>
       <div
         style={{
-          display: "flex",
-          justifyContent: "space-between",
+          display: 'flex',
+          justifyContent: 'space-between',
           fontSize: 12,
-          color: "var(--muted)",
+          color: 'var(--muted)',
           marginBottom: 4,
         }}
       >
@@ -37,17 +42,17 @@ function ProgressBar({ completed, total }) {
         style={{
           height: 6,
           borderRadius: 4,
-          background: "var(--line)",
-          overflow: "hidden",
+          background: 'var(--line)',
+          overflow: 'hidden',
         }}
       >
         <div
           style={{
             width: `${pct}%`,
-            height: "100%",
+            height: '100%',
             background: color,
             borderRadius: 4,
-            transition: "width 0.3s",
+            transition: 'width 0.3s',
           }}
         />
       </div>
@@ -58,7 +63,7 @@ function ProgressBar({ completed, total }) {
 function DueDate({ dueDate }) {
   if (!dueDate)
     return (
-      <span style={{ color: "var(--muted)", fontSize: 12 }}>No due date</span>
+      <span style={{ color: 'var(--muted)', fontSize: 12 }}>No due date</span>
     );
   const due = new Date(dueDate);
   const now = new Date();
@@ -67,16 +72,16 @@ function DueDate({ dueDate }) {
   const label = isOverdue
     ? `Overdue by ${Math.abs(diff)}d`
     : diff === 0
-    ? "Due today"
-    : diff === 1
-    ? "Due tomorrow"
-    : `Due in ${diff}d`;
+      ? 'Due today'
+      : diff === 1
+        ? 'Due tomorrow'
+        : `Due in ${diff}d`;
   return (
     <span
       style={{
         fontSize: 12,
         fontWeight: 600,
-        color: isOverdue ? "#dc2626" : diff <= 2 ? "#d97706" : "var(--muted)",
+        color: isOverdue ? '#dc2626' : diff <= 2 ? '#d97706' : 'var(--muted)',
       }}
     >
       ◷ {due.toLocaleDateString()} — {label}
@@ -85,14 +90,14 @@ function DueDate({ dueDate }) {
 }
 
 const EMPTY_FORM = {
-  title: "",
-  type: "module",
+  title: '',
+  type: 'module',
   moduleIds: [],
   testCaseIds: [],
-  assignedTo: "",
-  priority: "Medium",
-  dueDate: "",
-  notes: "",
+  assignedTo: '',
+  priority: PRIORITY_DEFAULT,
+  dueDate: '',
+  notes: '',
 };
 
 export default function AssignmentsClient({
@@ -115,11 +120,11 @@ export default function AssignmentsClient({
   async function createAssignment(e) {
     e.preventDefault();
     if (!form.assignedTo) {
-      showToast("Select an assignee", "info");
+      showToast('Select an assignee', 'info');
       return;
     }
-    if (form.type === "module" && !form.moduleIds.length) {
-      showToast("Select at least one module", "info");
+    if (form.type === 'module' && !form.moduleIds.length) {
+      showToast('Select at least one module', 'info');
       return;
     }
 
@@ -128,13 +133,13 @@ export default function AssignmentsClient({
       const data = await apiCreateAssignment(form);
       showToast(
         `Assignment created — ${data.testCaseCount} test cases`,
-        "success"
+        'success',
       );
       setShowModal(false);
       setForm(EMPTY_FORM);
       router.refresh();
     } catch (err) {
-      showToast(err.message || "Failed to create", "error");
+      showToast(err.message || 'Failed to create', 'error');
     } finally {
       setSaving(false);
     }
@@ -143,27 +148,27 @@ export default function AssignmentsClient({
   async function cancelAssignment(id) {
     if (
       !confirm(
-        "Cancel this assignment? The test cases will remain but lose their assignment."
+        'Cancel this assignment? The test cases will remain but lose their assignment.',
       )
     )
       return;
     try {
       await apiDeleteAssignment(id);
-      showToast("Assignment cancelled", "info");
+      showToast('Assignment cancelled', 'info');
       router.refresh();
     } catch (err) {
-      showToast(err.message || "Failed to cancel", "error");
+      showToast(err.message || 'Failed to cancel', 'error');
     }
   }
 
   async function saveEdit(id) {
     try {
       await apiUpdateAssignment(id, editForm);
-      showToast("Updated", "success");
+      showToast('Updated', 'success');
       setEditId(null);
       router.refresh();
     } catch (err) {
-      showToast(err.message || "Failed to update", "error");
+      showToast(err.message || 'Failed to update', 'error');
     }
   }
 
@@ -171,8 +176,12 @@ export default function AssignmentsClient({
     router.push(`/test-cases?assignedTo=${encodeURIComponent(a.assignedTo)}`);
   }
 
-  const active = assignments.filter((a) => a.status === "active");
-  const cancelled = assignments.filter((a) => a.status !== "active");
+  const active = assignments.filter(
+    (a) => a.status === ASSIGNMENT_STATUS.ACTIVE,
+  );
+  const cancelled = assignments.filter(
+    (a) => a.status !== ASSIGNMENT_STATUS.ACTIVE,
+  );
 
   return (
     <div>
@@ -180,12 +189,12 @@ export default function AssignmentsClient({
 
       {/* Header */}
       <PageHeader
-        eyebrow="Team"
-        title="Assignments"
-        sub="Assign test cases and modules to team members"
+        eyebrow='Team'
+        title='Assignments'
+        sub='Assign test cases and modules to team members'
         actions={
           <button
-            className="btn btn-primary"
+            className='btn btn-primary'
             onClick={() => {
               setForm(EMPTY_FORM);
               setShowModal(true);
@@ -199,35 +208,35 @@ export default function AssignmentsClient({
       {/* Tabs */}
       <div
         style={{
-          display: "flex",
+          display: 'flex',
           gap: 4,
           marginBottom: 20,
-          borderBottom: "1px solid var(--line)",
+          borderBottom: '1px solid var(--line)',
           paddingBottom: 0,
         }}
       >
         {[
-          { key: "mine", label: "Assigned to Me" },
-          { key: "sent", label: "Assigned by Me" },
+          { key: 'mine', label: 'Assigned to Me' },
+          { key: 'sent', label: 'Assigned by Me' },
         ].map(({ key, label }) => (
           <Link
             key={key}
             href={`?view=${key}`}
             style={{
-              padding: "8px 18px",
-              display: "inline-block",
-              textDecoration: "none",
+              padding: '8px 18px',
+              display: 'inline-block',
+              textDecoration: 'none',
               borderBottom:
                 view === key
-                  ? "2px solid var(--accent)"
-                  : "2px solid transparent",
-              background: "none",
-              cursor: "pointer",
+                  ? '2px solid var(--accent)'
+                  : '2px solid transparent',
+              background: 'none',
+              cursor: 'pointer',
               fontSize: 14,
               fontWeight: view === key ? 700 : 400,
-              color: view === key ? "var(--accent)" : "var(--muted)",
+              color: view === key ? 'var(--accent)' : 'var(--muted)',
               marginBottom: -1,
-              borderRadius: "4px 4px 0 0",
+              borderRadius: '4px 4px 0 0',
             }}
           >
             {label}
@@ -238,27 +247,27 @@ export default function AssignmentsClient({
       {/* Cards */}
       {active.length === 0 ? (
         <EmptyState
-          icon="◷"
+          icon='◷'
           title={
-            view === "mine"
-              ? "No assignments for you yet"
+            view === 'mine'
+              ? 'No assignments for you yet'
               : "You haven't assigned anything yet"
           }
         >
-          <p style={{ marginTop: 6, color: "var(--muted)" }}>
-            {view === "mine"
-              ? "Ask a team member to assign test cases to you."
+          <p style={{ marginTop: 6, color: 'var(--muted)' }}>
+            {view === 'mine'
+              ? 'Ask a team member to assign test cases to you.'
               : 'Click "New Assignment" to assign a module or test cases.'}
           </p>
         </EmptyState>
       ) : (
-        <div style={{ display: "grid", gap: 14 }}>
+        <div style={{ display: 'grid', gap: 14 }}>
           {active.map((a) => (
             <AssignmentCard
               key={a._id}
               assignment={a}
-              isMine={view === "mine"}
-              isSent={view === "sent"}
+              isMine={view === 'mine'}
+              isSent={view === 'sent'}
               isEditing={editId === a._id}
               editForm={editForm}
               onEdit={() => {
@@ -267,7 +276,7 @@ export default function AssignmentsClient({
                   title: a.title,
                   notes: a.notes,
                   priority: a.priority,
-                  dueDate: a.dueDate ? a.dueDate.slice(0, 10) : "",
+                  dueDate: a.dueDate ? a.dueDate.slice(0, 10) : '',
                 });
               }}
               onEditChange={(f) => setEditForm((prev) => ({ ...prev, ...f }))}
@@ -284,27 +293,27 @@ export default function AssignmentsClient({
         <details style={{ marginTop: 24 }}>
           <summary
             style={{
-              cursor: "pointer",
-              color: "var(--muted)",
+              cursor: 'pointer',
+              color: 'var(--muted)',
               fontSize: 13,
               fontWeight: 600,
-              userSelect: "none",
+              userSelect: 'none',
             }}
           >
             {cancelled.length} cancelled assignment
-            {cancelled.length !== 1 ? "s" : ""}
+            {cancelled.length !== 1 ? 's' : ''}
           </summary>
-          <div style={{ display: "grid", gap: 10, marginTop: 10 }}>
+          <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
             {cancelled.map((a) => (
               <div
                 key={a._id}
-                className="panel"
+                className='panel'
                 style={{
                   opacity: 0.55,
-                  padding: "14px 18px",
-                  display: "flex",
-                  justifyContent: "space-between",
-                  alignItems: "center",
+                  padding: '14px 18px',
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
                 }}
               >
                 <div>
@@ -312,7 +321,7 @@ export default function AssignmentsClient({
                   <div
                     style={{
                       fontSize: 12,
-                      color: "var(--muted)",
+                      color: 'var(--muted)',
                       marginTop: 2,
                     }}
                   >
@@ -329,43 +338,43 @@ export default function AssignmentsClient({
       {/* Create Assignment Modal */}
       {showModal && (
         <Modal
-          title="New Assignment"
+          title='New Assignment'
           onClose={() => {
             setShowModal(false);
             setForm(EMPTY_FORM);
           }}
           maxWidth={560}
-          cardStyle={{ maxHeight: "90vh", overflow: "auto" }}
+          cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}
         >
           <form onSubmit={createAssignment}>
-            <div style={{ display: "grid", gap: 16 }}>
+            <div style={{ display: 'grid', gap: 16 }}>
               {/* Title */}
-              <div className="field-group">
-                <label className="field-label">
-                  Title{" "}
-                  <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+              <div className='field-group'>
+                <label className='field-label'>
+                  Title{' '}
+                  <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
                     (optional)
                   </span>
                 </label>
                 <input
-                  className="field-input"
-                  type="text"
+                  className='field-input'
+                  type='text'
                   value={form.title}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, title: e.target.value }))
                   }
-                  placeholder="e.g. Auth Module — v2.5 regression"
+                  placeholder='e.g. Auth Module — v2.5 regression'
                 />
               </div>
 
               {/* Scope: Module or Manual selection */}
-              <div className="field-group">
-                <label className="field-label">Scope</label>
-                <div style={{ display: "flex", gap: 8 }}>
-                  {["module", "selection"].map((t) => (
+              <div className='field-group'>
+                <label className='field-label'>Scope</label>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  {['module', 'selection'].map((t) => (
                     <button
                       key={t}
-                      type="button"
+                      type='button'
                       onClick={() =>
                         setForm((f) => ({
                           ...f,
@@ -376,44 +385,44 @@ export default function AssignmentsClient({
                       }
                       style={{
                         flex: 1,
-                        padding: "8px 12px",
+                        padding: '8px 12px',
                         borderRadius: 8,
                         border: `1.5px solid ${
-                          form.type === t ? "var(--accent)" : "var(--line)"
+                          form.type === t ? 'var(--accent)' : 'var(--line)'
                         }`,
                         background:
-                          form.type === t ? "rgba(13,148,136,0.08)" : "#fff",
-                        color: form.type === t ? "var(--accent)" : "var(--fg)",
+                          form.type === t ? 'rgba(13,148,136,0.08)' : '#fff',
+                        color: form.type === t ? 'var(--accent)' : 'var(--fg)',
                         fontWeight: form.type === t ? 700 : 400,
-                        cursor: "pointer",
+                        cursor: 'pointer',
                         fontSize: 13,
                       }}
                     >
-                      {t === "module" ? "⊞ By Module" : "◎ By Selection"}
+                      {t === 'module' ? '⊞ By Module' : '◎ By Selection'}
                     </button>
                   ))}
                 </div>
               </div>
 
               {/* Module picker */}
-              {form.type === "module" && (
-                <div className="field-group">
-                  <label className="field-label">Modules to assign</label>
+              {form.type === 'module' && (
+                <div className='field-group'>
+                  <label className='field-label'>Modules to assign</label>
                   <div
                     style={{
                       maxHeight: 200,
-                      overflowY: "auto",
-                      border: "1px solid var(--line)",
+                      overflowY: 'auto',
+                      border: '1px solid var(--line)',
                       borderRadius: 8,
                       padding: 8,
-                      display: "grid",
+                      display: 'grid',
                       gap: 4,
                     }}
                   >
                     {modules.length === 0 ? (
                       <div
                         style={{
-                          color: "var(--muted)",
+                          color: 'var(--muted)',
                           fontSize: 13,
                           padding: 8,
                         }}
@@ -423,27 +432,27 @@ export default function AssignmentsClient({
                     ) : (
                       modules.map((m) => {
                         const checked = form.moduleIds.includes(m._id);
-                        const count = moduleCounts[m._id] ?? "…";
+                        const count = moduleCounts[m._id] ?? '…';
                         return (
                           <label
                             key={m._id}
                             style={{
-                              display: "flex",
-                              alignItems: "center",
+                              display: 'flex',
+                              alignItems: 'center',
                               gap: 8,
-                              padding: "6px 8px",
+                              padding: '6px 8px',
                               borderRadius: 6,
-                              cursor: "pointer",
+                              cursor: 'pointer',
                               background: checked
-                                ? "rgba(13,148,136,0.06)"
-                                : "transparent",
+                                ? 'rgba(13,148,136,0.06)'
+                                : 'transparent',
                               border: checked
-                                ? "1px solid rgba(13,148,136,0.2)"
-                                : "1px solid transparent",
+                                ? '1px solid rgba(13,148,136,0.2)'
+                                : '1px solid transparent',
                             }}
                           >
                             <input
-                              type="checkbox"
+                              type='checkbox'
                               checked={checked}
                               onChange={() =>
                                 setForm((f) => ({
@@ -456,14 +465,14 @@ export default function AssignmentsClient({
                             />
                             <span style={{ flex: 1, fontSize: 13 }}>
                               <span
-                                style={{ color: "var(--muted)", fontSize: 11 }}
+                                style={{ color: 'var(--muted)', fontSize: 11 }}
                               >
                                 {m.applicationName} /
-                              </span>{" "}
+                              </span>{' '}
                               {m.name}
                             </span>
                             <span
-                              style={{ fontSize: 11, color: "var(--muted)" }}
+                              style={{ fontSize: 11, color: 'var(--muted)' }}
                             >
                               {count} cases
                             </span>
@@ -475,37 +484,37 @@ export default function AssignmentsClient({
                 </div>
               )}
 
-              {form.type === "selection" && (
+              {form.type === 'selection' && (
                 <div
                   style={{
-                    padding: "12px 14px",
-                    background: "#f8fafc",
+                    padding: '12px 14px',
+                    background: '#f8fafc',
                     borderRadius: 8,
-                    border: "1px solid var(--line)",
+                    border: '1px solid var(--line)',
                     fontSize: 13,
-                    color: "var(--muted)",
+                    color: 'var(--muted)',
                   }}
                 >
-                  To assign specific test cases, select them on the{" "}
-                  <strong style={{ color: "var(--fg)" }}>Test Cases</strong>{" "}
-                  page and click the{" "}
-                  <strong style={{ color: "var(--accent)" }}>Assign</strong>{" "}
+                  To assign specific test cases, select them on the{' '}
+                  <strong style={{ color: 'var(--fg)' }}>Test Cases</strong>{' '}
+                  page and click the{' '}
+                  <strong style={{ color: 'var(--accent)' }}>Assign</strong>{' '}
                   button.
                 </div>
               )}
 
               {/* Assignee */}
-              <div className="field-group">
-                <label className="field-label">Assign to</label>
+              <div className='field-group'>
+                <label className='field-label'>Assign to</label>
                 <select
-                  className="field-select"
+                  className='field-select'
                   value={form.assignedTo}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, assignedTo: e.target.value }))
                   }
                   required
                 >
-                  <option value="">Select team member…</option>
+                  <option value=''>Select team member…</option>
                   {qaUsers.map((u) => (
                     <option key={u} value={u}>
                       {u}
@@ -517,35 +526,35 @@ export default function AssignmentsClient({
               {/* Priority + Due Date */}
               <div
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "1fr 1fr",
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
                   gap: 12,
                 }}
               >
-                <div className="field-group">
-                  <label className="field-label">Priority</label>
+                <div className='field-group'>
+                  <label className='field-label'>Priority</label>
                   <select
-                    className="field-select"
+                    className='field-select'
                     value={form.priority}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, priority: e.target.value }))
                     }
                   >
-                    <option value="High">High</option>
-                    <option value="Medium">Medium</option>
-                    <option value="Low">Low</option>
+                    <option value={PRIORITIES.HIGH}>High</option>
+                    <option value={PRIORITIES.MEDIUM}>Medium</option>
+                    <option value={PRIORITIES.LOW}>Low</option>
                   </select>
                 </div>
-                <div className="field-group">
-                  <label className="field-label">
-                    Due date{" "}
-                    <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+                <div className='field-group'>
+                  <label className='field-label'>
+                    Due date{' '}
+                    <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
                       (optional)
                     </span>
                   </label>
                   <input
-                    className="field-input"
-                    type="date"
+                    className='field-input'
+                    type='date'
                     value={form.dueDate}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, dueDate: e.target.value }))
@@ -555,37 +564,37 @@ export default function AssignmentsClient({
               </div>
 
               {/* Notes */}
-              <div className="field-group">
-                <label className="field-label">
-                  Notes{" "}
-                  <span style={{ color: "var(--muted)", fontWeight: 400 }}>
+              <div className='field-group'>
+                <label className='field-label'>
+                  Notes{' '}
+                  <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
                     (optional)
                   </span>
                 </label>
                 <textarea
-                  className="field-input"
+                  className='field-input'
                   rows={3}
                   value={form.notes}
                   onChange={(e) =>
                     setForm((f) => ({ ...f, notes: e.target.value }))
                   }
-                  placeholder="Instructions, context, or special focus areas…"
-                  style={{ resize: "vertical" }}
+                  placeholder='Instructions, context, or special focus areas…'
+                  style={{ resize: 'vertical' }}
                 />
               </div>
             </div>
 
             <div
               style={{
-                display: "flex",
+                display: 'flex',
                 gap: 10,
-                justifyContent: "flex-end",
+                justifyContent: 'flex-end',
                 marginTop: 20,
               }}
             >
               <button
-                type="button"
-                className="btn btn-secondary"
+                type='button'
+                className='btn btn-secondary'
                 onClick={() => {
                   setShowModal(false);
                   setForm(EMPTY_FORM);
@@ -594,15 +603,15 @@ export default function AssignmentsClient({
                 Cancel
               </button>
               <button
-                type="submit"
-                className="btn btn-primary"
+                type='submit'
+                className='btn btn-primary'
                 disabled={
                   saving ||
-                  (form.type === "module" && !form.moduleIds.length) ||
+                  (form.type === 'module' && !form.moduleIds.length) ||
                   !form.assignedTo
                 }
               >
-                {saving ? "Creating…" : "Create Assignment"}
+                {saving ? 'Creating…' : 'Create Assignment'}
               </button>
             </div>
           </form>
@@ -626,81 +635,81 @@ function AssignmentCard({
   onViewCases,
 }) {
   return (
-    <div className="panel" style={{ padding: 0, overflow: "hidden" }}>
+    <div className='panel' style={{ padding: 0, overflow: 'hidden' }}>
       {/* Priority stripe */}
       <div
         style={{
           height: 4,
           background:
-            a.priority === "High"
-              ? "#dc2626"
-              : a.priority === "Low"
-              ? "#16a34a"
-              : "#d97706",
+            a.priority === PRIORITIES.HIGH
+              ? '#dc2626'
+              : a.priority === PRIORITIES.LOW
+                ? '#16a34a'
+                : '#d97706',
         }}
       />
 
-      <div style={{ padding: "16px 20px" }}>
+      <div style={{ padding: '16px 20px' }}>
         {isEditing ? (
           /* Edit mode */
-          <div style={{ display: "grid", gap: 12 }}>
-            <div className="field-group">
-              <label className="field-label">Title</label>
+          <div style={{ display: 'grid', gap: 12 }}>
+            <div className='field-group'>
+              <label className='field-label'>Title</label>
               <input
-                className="field-input"
-                value={editForm.title || ""}
+                className='field-input'
+                value={editForm.title || ''}
                 onChange={(e) => onEditChange({ title: e.target.value })}
               />
             </div>
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
                 gap: 12,
               }}
             >
-              <div className="field-group">
-                <label className="field-label">Priority</label>
+              <div className='field-group'>
+                <label className='field-label'>Priority</label>
                 <select
-                  className="field-select"
-                  value={editForm.priority || "Medium"}
+                  className='field-select'
+                  value={editForm.priority || PRIORITY_DEFAULT}
                   onChange={(e) => onEditChange({ priority: e.target.value })}
                 >
-                  <option>High</option>
-                  <option>Medium</option>
-                  <option>Low</option>
+                  <option value={PRIORITIES.HIGH}>High</option>
+                  <option value={PRIORITIES.MEDIUM}>Medium</option>
+                  <option value={PRIORITIES.LOW}>Low</option>
                 </select>
               </div>
-              <div className="field-group">
-                <label className="field-label">Due date</label>
+              <div className='field-group'>
+                <label className='field-label'>Due date</label>
                 <input
-                  className="field-input"
-                  type="date"
-                  value={editForm.dueDate || ""}
+                  className='field-input'
+                  type='date'
+                  value={editForm.dueDate || ''}
                   onChange={(e) => onEditChange({ dueDate: e.target.value })}
                 />
               </div>
             </div>
-            <div className="field-group">
-              <label className="field-label">Notes</label>
+            <div className='field-group'>
+              <label className='field-label'>Notes</label>
               <textarea
-                className="field-input"
+                className='field-input'
                 rows={2}
-                value={editForm.notes || ""}
+                value={editForm.notes || ''}
                 onChange={(e) => onEditChange({ notes: e.target.value })}
-                style={{ resize: "vertical" }}
+                style={{ resize: 'vertical' }}
               />
             </div>
             <div
-              style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}
+              style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}
             >
               <button
-                className="btn btn-secondary btn-sm"
+                className='btn btn-secondary btn-sm'
                 onClick={onCancelEdit}
               >
                 Cancel
               </button>
-              <button className="btn btn-primary btn-sm" onClick={onSaveEdit}>
+              <button className='btn btn-primary btn-sm' onClick={onSaveEdit}>
                 Save
               </button>
             </div>
@@ -710,9 +719,9 @@ function AssignmentCard({
           <>
             <div
               style={{
-                display: "flex",
-                alignItems: "flex-start",
-                justifyContent: "space-between",
+                display: 'flex',
+                alignItems: 'flex-start',
+                justifyContent: 'space-between',
                 gap: 12,
                 marginBottom: 12,
               }}
@@ -720,10 +729,10 @@ function AssignmentCard({
               <div style={{ flex: 1, minWidth: 0 }}>
                 <div
                   style={{
-                    display: "flex",
-                    alignItems: "center",
+                    display: 'flex',
+                    alignItems: 'center',
                     gap: 8,
-                    flexWrap: "wrap",
+                    flexWrap: 'wrap',
                     marginBottom: 4,
                   }}
                 >
@@ -735,62 +744,62 @@ function AssignmentCard({
                 <div
                   style={{
                     fontSize: 12,
-                    color: "var(--muted)",
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: "4px 14px",
+                    color: 'var(--muted)',
+                    display: 'flex',
+                    flexWrap: 'wrap',
+                    gap: '4px 14px',
                   }}
                 >
                   {isMine && (
                     <span>
-                      From:{" "}
-                      <strong style={{ color: "var(--fg)" }}>
+                      From:{' '}
+                      <strong style={{ color: 'var(--fg)' }}>
                         {a.assignedBy}
                       </strong>
                     </span>
                   )}
                   {isSent && (
                     <span>
-                      To:{" "}
-                      <strong style={{ color: "var(--fg)" }}>
+                      To:{' '}
+                      <strong style={{ color: 'var(--fg)' }}>
                         {a.assignedTo}
                       </strong>
                     </span>
                   )}
                   <span>
-                    {a.type === "module"
+                    {a.type === 'module'
                       ? `⊞ ${a.moduleIds?.length || 1} module${
-                          (a.moduleIds?.length || 1) !== 1 ? "s" : ""
+                          (a.moduleIds?.length || 1) !== 1 ? 's' : ''
                         }`
-                      : "◎ Selection"}
+                      : '◎ Selection'}
                     · {a.testCaseCount} test case
-                    {a.testCaseCount !== 1 ? "s" : ""}
+                    {a.testCaseCount !== 1 ? 's' : ''}
                   </span>
                   <DueDate dueDate={a.dueDate} />
                 </div>
               </div>
-              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
                 {isSent && (
                   <button
-                    className="btn btn-secondary btn-sm"
+                    className='btn btn-secondary btn-sm'
                     onClick={onEdit}
-                    title="Edit assignment"
+                    title='Edit assignment'
                   >
                     ✎
                   </button>
                 )}
                 <button
-                  className="btn btn-primary btn-sm"
+                  className='btn btn-primary btn-sm'
                   onClick={onViewCases}
                 >
                   View Cases
                 </button>
                 {isSent && (
                   <button
-                    className="btn btn-danger btn-sm"
+                    className='btn btn-danger btn-sm'
                     onClick={onCancel}
-                    title="Cancel assignment"
-                    style={{ padding: "5px 10px" }}
+                    title='Cancel assignment'
+                    style={{ padding: '5px 10px' }}
                   >
                     ✕
                   </button>
@@ -804,12 +813,12 @@ function AssignmentCard({
               <div
                 style={{
                   marginTop: 10,
-                  padding: "8px 12px",
-                  background: "#f8fafc",
+                  padding: '8px 12px',
+                  background: '#f8fafc',
                   borderRadius: 6,
                   fontSize: 12,
-                  color: "var(--muted)",
-                  borderLeft: "3px solid var(--line)",
+                  color: 'var(--muted)',
+                  borderLeft: '3px solid var(--line)',
                 }}
               >
                 {a.notes}

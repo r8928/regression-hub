@@ -16,7 +16,11 @@ vi.mock('@/lib/queryClient', () => ({
 
 describe('SessionWrapper', () => {
   it('renders children', () => {
-    render(<SessionWrapper><p>child content</p></SessionWrapper>);
+    render(
+      <SessionWrapper>
+        <p>child content</p>
+      </SessionWrapper>,
+    );
     expect(screen.getByText('child content')).toBeInTheDocument();
   });
 
@@ -25,7 +29,7 @@ describe('SessionWrapper', () => {
       <SessionWrapper>
         <span>first</span>
         <span>second</span>
-      </SessionWrapper>
+      </SessionWrapper>,
     );
     expect(screen.getByText('first')).toBeInTheDocument();
     expect(screen.getByText('second')).toBeInTheDocument();

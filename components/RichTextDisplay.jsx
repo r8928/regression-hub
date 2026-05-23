@@ -29,8 +29,10 @@ export default function RichTextDisplay({ value, className, style }) {
     const Tag = listType === 'ol' ? 'ol' : 'ul';
     elements.push(
       <Tag key={elements.length} style={{ margin: '2px 0', paddingLeft: 18 }}>
-        {listItems.map((item, i) => <li key={i}>{item}</li>)}
-      </Tag>
+        {listItems.map((item, i) => (
+          <li key={i}>{item}</li>
+        ))}
+      </Tag>,
     );
     listItems = [];
     listType = null;
@@ -52,7 +54,11 @@ export default function RichTextDisplay({ value, className, style }) {
       listItems.push(trimmed.replace(/^[-•*]\s/, ''));
     } else {
       flushList();
-      elements.push(<p key={elements.length} style={{ margin: '1px 0' }}>{trimmed}</p>);
+      elements.push(
+        <p key={elements.length} style={{ margin: '1px 0' }}>
+          {trimmed}
+        </p>,
+      );
     }
   }
   flushList();

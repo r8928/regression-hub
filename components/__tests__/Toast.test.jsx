@@ -18,34 +18,46 @@ describe('ToastProvider', () => {
 
   it('displays a toast message after showToast is called', () => {
     render(<ToastProvider />);
-    act(() => { showToast('Saved successfully'); });
+    act(() => {
+      showToast('Saved successfully');
+    });
     expect(screen.getByText('Saved successfully')).toBeInTheDocument();
   });
 
   it('shows success icon for success type', () => {
     render(<ToastProvider />);
-    act(() => { showToast('Done', 'success'); });
+    act(() => {
+      showToast('Done', 'success');
+    });
     expect(screen.getByText('✓')).toBeInTheDocument();
   });
 
   it('shows error icon for error type', () => {
     render(<ToastProvider />);
-    act(() => { showToast('Failed', 'error'); });
+    act(() => {
+      showToast('Failed', 'error');
+    });
     expect(screen.getByText('✕')).toBeInTheDocument();
   });
 
   it('shows info icon for info type', () => {
     render(<ToastProvider />);
-    act(() => { showToast('Note', 'info'); });
+    act(() => {
+      showToast('Note', 'info');
+    });
     expect(screen.getByText('ℹ')).toBeInTheDocument();
   });
 
   it('removes the toast after the duration elapses', () => {
     render(<ToastProvider />);
-    act(() => { showToast('Temporary', 'success', 1000); });
+    act(() => {
+      showToast('Temporary', 'success', 1000);
+    });
     expect(screen.getByText('Temporary')).toBeInTheDocument();
 
-    act(() => { vi.advanceTimersByTime(1000 + 220 + 50); });
+    act(() => {
+      vi.advanceTimersByTime(1000 + 220 + 50);
+    });
     expect(screen.queryByText('Temporary')).toBeNull();
   });
 

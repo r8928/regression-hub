@@ -1,52 +1,53 @@
-"use client";
+'use client';
 
-import Modal from "@/components/Modal";
-import PageHeader from "@/components/PageHeader";
-import ToastProvider, { showToast } from "@/components/Toast";
+import Modal from '@/components/Modal';
+import PageHeader from '@/components/PageHeader';
+import ToastProvider, { showToast } from '@/components/Toast';
 import {
   createUser as apiCreateUser,
   updateUser as apiUpdateUser,
-} from "@/lib/api/users";
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+} from '@/lib/api/users';
+import { ROLES } from '@/lib/constants';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
 
 const ROLE_STYLE = {
-  admin: {
-    bg: "rgba(13,148,136,0.12)",
-    border: "rgba(13,148,136,0.4)",
-    color: "#0d9488",
-    label: "Admin",
+  [ROLES.ADMIN]: {
+    bg: 'rgba(13,148,136,0.12)',
+    border: 'rgba(13,148,136,0.4)',
+    color: '#0d9488',
+    label: 'Admin',
   },
-  qa: {
-    bg: "rgba(8,145,178,0.12)",
-    border: "rgba(8,145,178,0.4)",
-    color: "#0891b2",
-    label: "QA",
+  [ROLES.QA]: {
+    bg: 'rgba(8,145,178,0.12)',
+    border: 'rgba(8,145,178,0.4)',
+    color: '#0891b2',
+    label: 'QA',
   },
 };
 
 const LOCATION_STYLE = {
   radius: {
-    bg: "rgba(13,148,136,0.1)",
-    border: "rgba(13,148,136,0.3)",
-    color: "#0d9488",
-    label: "Radius",
+    bg: 'rgba(13,148,136,0.1)',
+    border: 'rgba(13,148,136,0.3)',
+    color: '#0d9488',
+    label: 'Radius',
   },
   cb: {
-    bg: "rgba(99,102,241,0.1)",
-    border: "rgba(99,102,241,0.3)",
-    color: "#6366f1",
-    label: "CB",
+    bg: 'rgba(99,102,241,0.1)',
+    border: 'rgba(99,102,241,0.3)',
+    color: '#6366f1',
+    label: 'CB',
   },
 };
 
 function RoleBadge({ role }) {
-  const s = ROLE_STYLE[role] || ROLE_STYLE.qa;
+  const s = ROLE_STYLE[role] || ROLE_STYLE[ROLES.QA];
   return (
     <span
       style={{
-        display: "inline-block",
-        padding: "2px 10px",
+        display: 'inline-block',
+        padding: '2px 10px',
         borderRadius: 20,
         fontSize: 11,
         fontWeight: 700,
@@ -61,38 +62,38 @@ function RoleBadge({ role }) {
 }
 
 function Avatar({ name, role }) {
-  const s = ROLE_STYLE[role] || ROLE_STYLE.qa;
+  const s = ROLE_STYLE[role] || ROLE_STYLE[ROLES.QA];
   return (
     <div
       style={{
         width: 36,
         height: 36,
-        borderRadius: "50%",
+        borderRadius: '50%',
         background: s.bg,
         border: `2px solid ${s.border}`,
         color: s.color,
         fontWeight: 700,
         fontSize: 14,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
         flexShrink: 0,
       }}
     >
-      {(name || "?")[0].toUpperCase()}
+      {(name || '?')[0].toUpperCase()}
     </div>
   );
 }
 
 const EMPTY_FORM = {
-  name: "",
-  username: "",
-  password: "",
-  confirmPassword: "",
-  role: "qa",
+  name: '',
+  username: '',
+  password: '',
+  confirmPassword: '',
+  role: ROLES.QA,
 };
-const EMPTY_EDIT = { name: "", role: "qa" };
-const EMPTY_PWD = { password: "", confirmPassword: "" };
+const EMPTY_EDIT = { name: '', role: ROLES.QA };
+const EMPTY_PWD = { password: '', confirmPassword: '' };
 
 export default function UsersClient({ user, initialUsers }) {
   const router = useRouter();
@@ -113,7 +114,7 @@ export default function UsersClient({ user, initialUsers }) {
   async function createUser(e) {
     e.preventDefault();
     if (addForm.password !== addForm.confirmPassword) {
-      showToast("Passwords do not match", "error");
+      showToast('Passwords do not match', 'error');
       return;
     }
     setAddSaving(true);
@@ -124,12 +125,12 @@ export default function UsersClient({ user, initialUsers }) {
         password: addForm.password,
         role: addForm.role,
       });
-      showToast(`User "${addForm.name}" created`, "success");
+      showToast(`User "${addForm.name}" created`, 'success');
       setShowAdd(false);
       setAddForm(EMPTY_FORM);
       router.refresh();
     } catch (err) {
-      showToast(err.message || "Failed to create user", "error");
+      showToast(err.message || 'Failed to create user', 'error');
     } finally {
       setAddSaving(false);
     }
@@ -139,11 +140,11 @@ export default function UsersClient({ user, initialUsers }) {
     setEditSaving(true);
     try {
       await apiUpdateUser(id, editForm);
-      showToast("User updated", "success");
+      showToast('User updated', 'success');
       setEditId(null);
       router.refresh();
     } catch (err) {
-      showToast(err.message || "Update failed", "error");
+      showToast(err.message || 'Update failed', 'error');
     } finally {
       setEditSaving(false);
     }
@@ -151,35 +152,35 @@ export default function UsersClient({ user, initialUsers }) {
 
   async function savePassword(id) {
     if (pwdForm.password !== pwdForm.confirmPassword) {
-      showToast("Passwords do not match", "error");
+      showToast('Passwords do not match', 'error');
       return;
     }
     setPwdSaving(true);
     try {
       await apiUpdateUser(id, { password: pwdForm.password });
-      showToast("Password updated", "success");
+      showToast('Password updated', 'success');
       setPwdId(null);
       setPwdForm(EMPTY_PWD);
     } catch (err) {
-      showToast(err.message || "Password update failed", "error");
+      showToast(err.message || 'Password update failed', 'error');
     } finally {
       setPwdSaving(false);
     }
   }
 
   async function toggleActive(u) {
-    const action = u.active !== false ? "deactivate" : "activate";
+    const action = u.active !== false ? 'deactivate' : 'activate';
     if (
       !confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${u.name}?`)
     )
       return;
     try {
       await apiUpdateUser(u._id, { active: u.active === false });
-      showToast(`User ${action}d`, "success");
+      showToast(`User ${action}d`, 'success');
       setEditId(null);
       router.refresh();
     } catch (err) {
-      showToast(err.message || "Action failed", "error");
+      showToast(err.message || 'Action failed', 'error');
     }
   }
 
@@ -193,14 +194,14 @@ export default function UsersClient({ user, initialUsers }) {
 
       {/* Header */}
       <PageHeader
-        eyebrow="Admin"
-        title="User Management"
+        eyebrow='Admin'
+        title='User Management'
         sub={
           <>
             <span
               style={{
-                display: "inline-block",
-                padding: "2px 10px",
+                display: 'inline-block',
+                padding: '2px 10px',
                 borderRadius: 20,
                 fontSize: 11,
                 fontWeight: 700,
@@ -214,10 +215,10 @@ export default function UsersClient({ user, initialUsers }) {
             {activeUsers.length} active · {inactiveUsers.length} inactive
           </>
         }
-        subStyle={{ display: "flex", alignItems: "center", gap: 8 }}
+        subStyle={{ display: 'flex', alignItems: 'center', gap: 8 }}
         actions={
           <button
-            className="btn btn-primary"
+            className='btn btn-primary'
             onClick={() => {
               setAddForm(EMPTY_FORM);
               setShowAdd(true);
@@ -230,57 +231,57 @@ export default function UsersClient({ user, initialUsers }) {
 
       {/* Role permissions info */}
       <div
-        className="panel"
+        className='panel'
         style={{
           marginBottom: 20,
           background:
-            "linear-gradient(135deg, rgba(13,148,136,0.04), rgba(8,145,178,0.04))",
-          border: "1px solid rgba(13,148,136,0.15)",
+            'linear-gradient(135deg, rgba(13,148,136,0.04), rgba(8,145,178,0.04))',
+          border: '1px solid rgba(13,148,136,0.15)',
         }}
       >
-        <div className="panel-body" style={{ padding: "14px 20px" }}>
+        <div className='panel-body' style={{ padding: '14px 20px' }}>
           <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}
+            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
           >
             <div>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 8,
                   marginBottom: 8,
                 }}
               >
-                <RoleBadge role="admin" />
+                <RoleBadge role={ROLES.ADMIN} />
                 <span style={{ fontWeight: 600, fontSize: 13 }}>Admin</span>
               </div>
               <ul
                 style={{
-                  listStyle: "none",
+                  listStyle: 'none',
                   padding: 0,
                   margin: 0,
-                  display: "grid",
+                  display: 'grid',
                   gap: 3,
                 }}
               >
                 {[
-                  "Manage users (create, edit, passwords)",
-                  "Import Test Cases & manage versions",
-                  "Clear all data",
-                  "Full test case access",
-                  "Assignments & reports",
+                  'Manage users (create, edit, passwords)',
+                  'Import Test Cases & manage versions',
+                  'Clear all data',
+                  'Full test case access',
+                  'Assignments & reports',
                 ].map((item) => (
                   <li
                     key={item}
                     style={{
                       fontSize: 12,
-                      color: "var(--muted)",
-                      display: "flex",
-                      alignItems: "center",
+                      color: 'var(--muted)',
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: 5,
                     }}
                   >
-                    <span style={{ color: "#16a34a", fontWeight: 700 }}>✓</span>{" "}
+                    <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>{' '}
                     {item}
                   </li>
                 ))}
@@ -289,62 +290,62 @@ export default function UsersClient({ user, initialUsers }) {
             <div>
               <div
                 style={{
-                  display: "flex",
-                  alignItems: "center",
+                  display: 'flex',
+                  alignItems: 'center',
                   gap: 8,
                   marginBottom: 8,
                 }}
               >
-                <RoleBadge role="qa" />
+                <RoleBadge role={ROLES.QA} />
                 <span style={{ fontWeight: 600, fontSize: 13 }}>QA</span>
               </div>
               <ul
                 style={{
-                  listStyle: "none",
+                  listStyle: 'none',
                   padding: 0,
                   margin: 0,
-                  display: "grid",
+                  display: 'grid',
                   gap: 3,
                 }}
               >
                 {[
-                  "View & fill test case results",
-                  "Manage assignments",
-                  "View reports & dashboard",
-                  "Export data (Excel / PDF)",
+                  'View & fill test case results',
+                  'Manage assignments',
+                  'View reports & dashboard',
+                  'Export data (Excel / PDF)',
                 ].map((item) => (
                   <li
                     key={item}
                     style={{
                       fontSize: 12,
-                      color: "var(--muted)",
-                      display: "flex",
-                      alignItems: "center",
+                      color: 'var(--muted)',
+                      display: 'flex',
+                      alignItems: 'center',
                       gap: 5,
                     }}
                   >
-                    <span style={{ color: "#16a34a", fontWeight: 700 }}>✓</span>{" "}
+                    <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>{' '}
                     {item}
                   </li>
                 ))}
-                {["Import Test Cases", "Clear data", "Manage users"].map(
+                {['Import Test Cases', 'Clear data', 'Manage users'].map(
                   (item) => (
                     <li
                       key={item}
                       style={{
                         fontSize: 12,
-                        color: "var(--muted)",
-                        display: "flex",
-                        alignItems: "center",
+                        color: 'var(--muted)',
+                        display: 'flex',
+                        alignItems: 'center',
                         gap: 5,
                       }}
                     >
-                      <span style={{ color: "#dc2626", fontWeight: 700 }}>
+                      <span style={{ color: '#dc2626', fontWeight: 700 }}>
                         ✗
-                      </span>{" "}
+                      </span>{' '}
                       {item}
                     </li>
-                  )
+                  ),
                 )}
               </ul>
             </div>
@@ -353,8 +354,8 @@ export default function UsersClient({ user, initialUsers }) {
       </div>
 
       {/* Users Table */}
-      <div className="panel">
-        <div className="table-wrap">
+      <div className='panel'>
+        <div className='table-wrap'>
           <table>
             <thead>
               <tr>
@@ -364,7 +365,7 @@ export default function UsersClient({ user, initialUsers }) {
                 <th>Role</th>
                 <th>Status</th>
                 <th>Created</th>
-                <th style={{ textAlign: "right" }}>Actions</th>
+                <th style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -373,9 +374,9 @@ export default function UsersClient({ user, initialUsers }) {
                   <td
                     colSpan={7}
                     style={{
-                      textAlign: "center",
+                      textAlign: 'center',
                       padding: 32,
-                      color: "var(--muted)",
+                      color: 'var(--muted)',
                     }}
                   >
                     No users found
@@ -389,14 +390,14 @@ export default function UsersClient({ user, initialUsers }) {
 
                   return (
                     <tr key={u._id} style={{ opacity: isActive ? 1 : 0.5 }}>
-                      <td style={{ padding: "10px 12px" }}>
+                      <td style={{ padding: '10px 12px' }}>
                         <Avatar name={u.name} role={u.role} />
                       </td>
                       <td>
                         {isEditing ? (
                           <input
-                            className="field-input"
-                            style={{ padding: "4px 8px", fontSize: 13 }}
+                            className='field-input'
+                            style={{ padding: '4px 8px', fontSize: 13 }}
                             value={editForm.name}
                             onChange={(e) =>
                               setEditForm((f) => ({
@@ -413,7 +414,7 @@ export default function UsersClient({ user, initialUsers }) {
                                 style={{
                                   marginLeft: 6,
                                   fontSize: 10,
-                                  color: "var(--accent)",
+                                  color: 'var(--accent)',
                                   fontWeight: 700,
                                 }}
                               >
@@ -424,16 +425,16 @@ export default function UsersClient({ user, initialUsers }) {
                         )}
                       </td>
                       <td
-                        className="font-mono"
-                        style={{ fontSize: 12, color: "var(--muted)" }}
+                        className='font-mono'
+                        style={{ fontSize: 12, color: 'var(--muted)' }}
                       >
                         {u.username}
                       </td>
                       <td>
                         {isEditing ? (
                           <select
-                            className="field-select"
-                            style={{ padding: "4px 8px", fontSize: 13 }}
+                            className='field-select'
+                            style={{ padding: '4px 8px', fontSize: 13 }}
                             value={editForm.role}
                             onChange={(e) =>
                               setEditForm((f) => ({
@@ -442,8 +443,8 @@ export default function UsersClient({ user, initialUsers }) {
                               }))
                             }
                           >
-                            <option value="admin">Admin</option>
-                            <option value="qa">QA</option>
+                            <option value={ROLES.ADMIN}>Admin</option>
+                            <option value={ROLES.QA}>QA</option>
                           </select>
                         ) : (
                           <RoleBadge role={u.role} />
@@ -452,91 +453,91 @@ export default function UsersClient({ user, initialUsers }) {
                       <td>
                         <span
                           style={{
-                            display: "inline-block",
-                            padding: "2px 10px",
+                            display: 'inline-block',
+                            padding: '2px 10px',
                             borderRadius: 20,
                             fontSize: 11,
                             fontWeight: 600,
-                            background: isActive ? "#f0fdf4" : "#f3f4f6",
+                            background: isActive ? '#f0fdf4' : '#f3f4f6',
                             border: `1px solid ${
-                              isActive ? "#bbf7d0" : "#e5e7eb"
+                              isActive ? '#bbf7d0' : '#e5e7eb'
                             }`,
-                            color: isActive ? "#16a34a" : "#9ca3af",
+                            color: isActive ? '#16a34a' : '#9ca3af',
                           }}
                         >
-                          {isActive ? "Active" : "Inactive"}
+                          {isActive ? 'Active' : 'Inactive'}
                         </span>
                       </td>
-                      <td style={{ fontSize: 12, color: "var(--muted)" }}>
+                      <td style={{ fontSize: 12, color: 'var(--muted)' }}>
                         {u.createdAt
                           ? new Date(u.createdAt).toLocaleDateString()
-                          : "—"}
+                          : '—'}
                       </td>
-                      <td style={{ textAlign: "right" }}>
+                      <td style={{ textAlign: 'right' }}>
                         {isEditing ? (
                           <div
                             style={{
-                              display: "flex",
+                              display: 'flex',
                               gap: 6,
-                              justifyContent: "flex-end",
+                              justifyContent: 'flex-end',
                             }}
                           >
                             <button
-                              className="btn btn-secondary btn-sm"
+                              className='btn btn-secondary btn-sm'
                               onClick={() => setEditId(null)}
                             >
                               Cancel
                             </button>
                             <button
-                              className="btn btn-primary btn-sm"
+                              className='btn btn-primary btn-sm'
                               onClick={() => saveEdit(u._id)}
                               disabled={editSaving}
                             >
-                              {editSaving ? "Saving…" : "Save"}
+                              {editSaving ? 'Saving…' : 'Save'}
                             </button>
                           </div>
                         ) : (
                           <div
                             style={{
-                              display: "flex",
+                              display: 'flex',
                               gap: 6,
-                              justifyContent: "flex-end",
+                              justifyContent: 'flex-end',
                             }}
                           >
                             <button
-                              className="btn btn-secondary btn-sm"
+                              className='btn btn-secondary btn-sm'
                               onClick={() => {
                                 setEditId(u._id);
                                 setEditForm({ name: u.name, role: u.role });
                               }}
-                              title="Edit name / role"
+                              title='Edit name / role'
                             >
                               Edit
                             </button>
                             <button
-                              className="btn btn-secondary btn-sm"
+                              className='btn btn-secondary btn-sm'
                               onClick={() => {
                                 setPwdId(u._id);
                                 setPwdForm(EMPTY_PWD);
                               }}
-                              title="Change password"
+                              title='Change password'
                             >
                               Password
                             </button>
                             {!isSelf && (
                               <button
                                 className={`btn btn-sm ${
-                                  isActive ? "btn-danger" : "btn-secondary"
+                                  isActive ? 'btn-danger' : 'btn-secondary'
                                 }`}
                                 onClick={() => toggleActive(u)}
                                 title={
                                   isActive
-                                    ? "Deactivate user"
-                                    : "Reactivate user"
+                                    ? 'Deactivate user'
+                                    : 'Reactivate user'
                                 }
-                                style={{ padding: "5px 10px" }}
+                                style={{ padding: '5px 10px' }}
                               >
-                                {isActive ? "⊘" : "↺"}
+                                {isActive ? '⊘' : '↺'}
                               </button>
                             )}
                           </div>
@@ -554,122 +555,122 @@ export default function UsersClient({ user, initialUsers }) {
       {/* Add User Modal */}
       {showAdd && (
         <Modal
-          title="Add New User"
+          title='Add New User'
           onClose={() => {
             setShowAdd(false);
             setAddForm(EMPTY_FORM);
           }}
         >
-          <form onSubmit={createUser} style={{ display: "grid", gap: 14 }}>
+          <form onSubmit={createUser} style={{ display: 'grid', gap: 14 }}>
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
                 gap: 12,
               }}
             >
-              <div className="field-group">
-                <label className="field-label">Full name</label>
+              <div className='field-group'>
+                <label className='field-label'>Full name</label>
                 <input
-                  className="field-input"
-                  type="text"
+                  className='field-input'
+                  type='text'
                   value={addForm.name}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, name: e.target.value }))
                   }
-                  placeholder="e.g. Maria"
+                  placeholder='e.g. Maria'
                   required
                 />
               </div>
-              <div className="field-group">
-                <label className="field-label">Username</label>
+              <div className='field-group'>
+                <label className='field-label'>Username</label>
                 <input
-                  className="field-input"
-                  type="text"
+                  className='field-input'
+                  type='text'
                   value={addForm.username}
                   onChange={(e) =>
                     setAddForm((f) => ({
                       ...f,
-                      username: e.target.value.toLowerCase().replace(/\s/g, ""),
+                      username: e.target.value.toLowerCase().replace(/\s/g, ''),
                     }))
                   }
-                  placeholder="e.g. maria"
+                  placeholder='e.g. maria'
                   required
                 />
               </div>
             </div>
-            <div className="field-group">
-              <label className="field-label">Role</label>
-              <div style={{ display: "flex", gap: 8 }}>
-                {["qa", "admin"].map((r) => (
+            <div className='field-group'>
+              <label className='field-label'>Role</label>
+              <div style={{ display: 'flex', gap: 8 }}>
+                {[ROLES.QA, ROLES.ADMIN].map((r) => (
                   <button
                     key={r}
-                    type="button"
+                    type='button'
                     onClick={() => setAddForm((f) => ({ ...f, role: r }))}
                     style={{
                       flex: 1,
-                      padding: "8px 12px",
+                      padding: '8px 12px',
                       borderRadius: 8,
-                      cursor: "pointer",
+                      cursor: 'pointer',
                       fontSize: 13,
                       border: `1.5px solid ${
                         addForm.role === r
-                          ? r === "admin"
-                            ? "#0d9488"
-                            : "#0891b2"
-                          : "var(--line)"
+                          ? r === ROLES.ADMIN
+                            ? '#0d9488'
+                            : '#0891b2'
+                          : 'var(--line)'
                       }`,
                       background:
                         addForm.role === r
-                          ? r === "admin"
-                            ? "rgba(13,148,136,0.08)"
-                            : "rgba(8,145,178,0.08)"
-                          : "#fff",
+                          ? r === ROLES.ADMIN
+                            ? 'rgba(13,148,136,0.08)'
+                            : 'rgba(8,145,178,0.08)'
+                          : '#fff',
                       color:
                         addForm.role === r
-                          ? r === "admin"
-                            ? "#0d9488"
-                            : "#0891b2"
-                          : "var(--fg)",
+                          ? r === ROLES.ADMIN
+                            ? '#0d9488'
+                            : '#0891b2'
+                          : 'var(--fg)',
                       fontWeight: addForm.role === r ? 700 : 400,
                     }}
                   >
-                    {r === "admin" ? "⚙ Admin" : "◎ QA"}
+                    {r === ROLES.ADMIN ? '⚙ Admin' : '◎ QA'}
                   </button>
                 ))}
               </div>
-              <p style={{ marginTop: 6, fontSize: 11, color: "var(--muted)" }}>
-                {addForm.role === "admin"
-                  ? "Can manage users, import test cases, clear data, and manage versions."
-                  : "Can fill test results, manage assignments, and export data."}
+              <p style={{ marginTop: 6, fontSize: 11, color: 'var(--muted)' }}>
+                {addForm.role === ROLES.ADMIN
+                  ? 'Can manage users, import test cases, clear data, and manage versions.'
+                  : 'Can fill test results, manage assignments, and export data.'}
               </p>
             </div>
             <div
               style={{
-                display: "grid",
-                gridTemplateColumns: "1fr 1fr",
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
                 gap: 12,
               }}
             >
-              <div className="field-group">
-                <label className="field-label">Password</label>
+              <div className='field-group'>
+                <label className='field-label'>Password</label>
                 <input
-                  className="field-input"
-                  type="password"
+                  className='field-input'
+                  type='password'
                   value={addForm.password}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, password: e.target.value }))
                   }
-                  placeholder="Min. 8 characters"
+                  placeholder='Min. 8 characters'
                   required
                   minLength={8}
                 />
               </div>
-              <div className="field-group">
-                <label className="field-label">Confirm password</label>
+              <div className='field-group'>
+                <label className='field-label'>Confirm password</label>
                 <input
-                  className="field-input"
-                  type="password"
+                  className='field-input'
+                  type='password'
                   value={addForm.confirmPassword}
                   onChange={(e) =>
                     setAddForm((f) => ({
@@ -677,31 +678,31 @@ export default function UsersClient({ user, initialUsers }) {
                       confirmPassword: e.target.value,
                     }))
                   }
-                  placeholder="Repeat password"
+                  placeholder='Repeat password'
                   required
                 />
               </div>
             </div>
             <div
               style={{
-                padding: "10px 14px",
-                background: "rgba(13,148,136,0.06)",
+                padding: '10px 14px',
+                background: 'rgba(13,148,136,0.06)',
                 borderRadius: 8,
-                border: "1px solid rgba(13,148,136,0.2)",
+                border: '1px solid rgba(13,148,136,0.2)',
                 fontSize: 12,
-                color: "var(--muted)",
+                color: 'var(--muted)',
               }}
             >
-              This user will be added to the{" "}
-              <strong style={{ color: "var(--fg)" }}>{user.teamName}</strong>{" "}
+              This user will be added to the{' '}
+              <strong style={{ color: 'var(--fg)' }}>{user.teamName}</strong>{' '}
               location and can only see that location&apos;s data.
             </div>
             <div
-              style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}
+              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
             >
               <button
-                type="button"
-                className="btn btn-secondary"
+                type='button'
+                className='btn btn-secondary'
                 onClick={() => {
                   setShowAdd(false);
                   setAddForm(EMPTY_FORM);
@@ -710,11 +711,11 @@ export default function UsersClient({ user, initialUsers }) {
                 Cancel
               </button>
               <button
-                type="submit"
-                className="btn btn-primary"
+                type='submit'
+                className='btn btn-primary'
                 disabled={addSaving}
               >
-                {addSaving ? "Creating…" : "Create User"}
+                {addSaving ? 'Creating…' : 'Create User'}
               </button>
             </div>
           </form>
@@ -725,46 +726,46 @@ export default function UsersClient({ user, initialUsers }) {
       {pwdId && (
         <Modal
           title={`Change Password — ${
-            users.find((u) => u._id === pwdId)?.name ?? "Unknown"
+            users.find((u) => u._id === pwdId)?.name ?? 'Unknown'
           }`}
           onClose={() => {
             setPwdId(null);
             setPwdForm(EMPTY_PWD);
           }}
         >
-          <div style={{ display: "grid", gap: 14 }}>
-            <div className="field-group">
-              <label className="field-label">New password</label>
+          <div style={{ display: 'grid', gap: 14 }}>
+            <div className='field-group'>
+              <label className='field-label'>New password</label>
               <input
-                className="field-input"
-                type="password"
+                className='field-input'
+                type='password'
                 value={pwdForm.password}
                 onChange={(e) =>
                   setPwdForm((f) => ({ ...f, password: e.target.value }))
                 }
-                placeholder="Min. 8 characters"
+                placeholder='Min. 8 characters'
                 required
                 minLength={8}
               />
             </div>
-            <div className="field-group">
-              <label className="field-label">Confirm password</label>
+            <div className='field-group'>
+              <label className='field-label'>Confirm password</label>
               <input
-                className="field-input"
-                type="password"
+                className='field-input'
+                type='password'
                 value={pwdForm.confirmPassword}
                 onChange={(e) =>
                   setPwdForm((f) => ({ ...f, confirmPassword: e.target.value }))
                 }
-                placeholder="Repeat password"
+                placeholder='Repeat password'
                 required
               />
             </div>
             <div
-              style={{ display: "flex", gap: 10, justifyContent: "flex-end" }}
+              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
             >
               <button
-                className="btn btn-secondary"
+                className='btn btn-secondary'
                 onClick={() => {
                   setPwdId(null);
                   setPwdForm(EMPTY_PWD);
@@ -773,13 +774,13 @@ export default function UsersClient({ user, initialUsers }) {
                 Cancel
               </button>
               <button
-                className="btn btn-primary"
+                className='btn btn-primary'
                 onClick={() => savePassword(pwdId)}
                 disabled={
                   pwdSaving || !pwdForm.password || pwdForm.password.length < 8
                 }
               >
-                {pwdSaving ? "Saving…" : "Update Password"}
+                {pwdSaving ? 'Saving…' : 'Update Password'}
               </button>
             </div>
           </div>

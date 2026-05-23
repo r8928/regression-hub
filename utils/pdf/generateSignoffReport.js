@@ -82,7 +82,7 @@ export async function generateSignoffReport({
     y,
     wrapParagraph(doc, overviewText, ML, y, CW, 'body'),
     PDF_LINE_H,
-    10
+    10,
   );
 
   writeText(doc, 'Detailed Test Results', ML, y, 'h3');
@@ -129,7 +129,7 @@ export async function generateSignoffReport({
     `•  Regression Test Cases — ${appName} (v${version || 'N/A'})`,
     ML,
     y,
-    'muted'
+    'muted',
   );
 
   for (const [aName, appCases] of groupCasesByApplication(cases)) {
@@ -202,7 +202,7 @@ export async function generateSignoffReport({
     by,
     wrapParagraph(doc, bugSummary, ML, by, CW, 'body'),
     PDF_LINE_H,
-    14
+    14,
   );
 
   if (failedCases.length > 0) {

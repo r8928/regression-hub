@@ -41,8 +41,12 @@ describe('parseWorkbookBuffer', () => {
   });
 
   it('throws when required columns are missing', () => {
-    const buffer = makeBuffer({ Sheet1: [{ Module: 'Auth', 'Test Case ID': 'TC-001' }] });
-    expect(() => parseWorkbookBuffer(buffer)).toThrow('Required columns missing');
+    const buffer = makeBuffer({
+      Sheet1: [{ Module: 'Auth', 'Test Case ID': 'TC-001' }],
+    });
+    expect(() => parseWorkbookBuffer(buffer)).toThrow(
+      'Required columns missing',
+    );
   });
 
   it('skips sheets with missing required columns but imports from valid sheets', () => {
@@ -56,7 +60,17 @@ describe('parseWorkbookBuffer', () => {
   });
 
   it('skips empty rows', () => {
-    const buffer = makeBuffer({ Sheet1: [VALID_ROW, { Module: '', 'Test Case ID': '', 'Test Case': '', 'Expected Result': '' }] });
+    const buffer = makeBuffer({
+      Sheet1: [
+        VALID_ROW,
+        {
+          Module: '',
+          'Test Case ID': '',
+          'Test Case': '',
+          'Expected Result': '',
+        },
+      ],
+    });
     const rows = parseWorkbookBuffer(buffer);
     expect(rows).toHaveLength(1);
   });
@@ -75,27 +89,37 @@ describe('parseWorkbookBuffer', () => {
   });
 
   it('keeps Pass and Fail status values intact', () => {
-    const passBuffer = makeBuffer({ Sheet1: [{ ...VALID_ROW, Status: 'Pass' }] });
+    const passBuffer = makeBuffer({
+      Sheet1: [{ ...VALID_ROW, Status: 'Pass' }],
+    });
     expect(parseWorkbookBuffer(passBuffer)[0].status).toBe('Pass');
 
-    const failBuffer = makeBuffer({ Sheet1: [{ ...VALID_ROW, Status: 'Fail' }] });
+    const failBuffer = makeBuffer({
+      Sheet1: [{ ...VALID_ROW, Status: 'Fail' }],
+    });
     expect(parseWorkbookBuffer(failBuffer)[0].status).toBe('Fail');
   });
 
   it('filters testedBy when qaUsers list is provided and name is not in the list', () => {
-    const buffer = makeBuffer({ Sheet1: [{ ...VALID_ROW, 'Tested By': 'Unknown Person' }] });
+    const buffer = makeBuffer({
+      Sheet1: [{ ...VALID_ROW, 'Tested By': 'Unknown Person' }],
+    });
     const rows = parseWorkbookBuffer(buffer, ['Alice', 'Bob']);
     expect(rows[0].testedBy).toBe('');
   });
 
   it('keeps testedBy when name is in the qaUsers list', () => {
-    const buffer = makeBuffer({ Sheet1: [{ ...VALID_ROW, 'Tested By': 'Alice' }] });
+    const buffer = makeBuffer({
+      Sheet1: [{ ...VALID_ROW, 'Tested By': 'Alice' }],
+    });
     const rows = parseWorkbookBuffer(buffer, ['Alice', 'Bob']);
     expect(rows[0].testedBy).toBe('Alice');
   });
 
   it('keeps testedBy unrestricted when qaUsers is empty', () => {
-    const buffer = makeBuffer({ Sheet1: [{ ...VALID_ROW, 'Tested By': 'Anyone' }] });
+    const buffer = makeBuffer({
+      Sheet1: [{ ...VALID_ROW, 'Tested By': 'Anyone' }],
+    });
     const rows = parseWorkbookBuffer(buffer, []);
     expect(rows[0].testedBy).toBe('Anyone');
   });

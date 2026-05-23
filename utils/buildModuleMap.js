@@ -1,3 +1,4 @@
+import { STATUS } from '@/lib/constants';
 import { normalizedStatus } from './formatters';
 
 /**
@@ -12,13 +13,16 @@ export function buildModuleMap(cases) {
       map[key] = {
         module: tc.moduleName || '—',
         app: tc.applicationName || '—',
-        total: 0, pass: 0, fail: 0, pending: 0,
+        total: 0,
+        pass: 0,
+        fail: 0,
+        pending: 0,
       };
     }
     map[key].total++;
     const st = normalizedStatus(tc.status);
-    if (st === 'Pass') map[key].pass++;
-    else if (st === 'Fail') map[key].fail++;
+    if (st === STATUS.PASS) map[key].pass++;
+    else if (st === STATUS.FAIL) map[key].fail++;
     else map[key].pending++;
   }
   return Object.values(map).sort((a, b) => a.module.localeCompare(b.module));

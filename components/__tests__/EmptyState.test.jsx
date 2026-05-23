@@ -9,14 +9,22 @@ describe('EmptyState', () => {
   });
 
   it('renders icon + title + children when icon and title are provided', () => {
-    render(<EmptyState icon="📭" title="Nothing here"><p>Import something.</p></EmptyState>);
+    render(
+      <EmptyState icon='📭' title='Nothing here'>
+        <p>Import something.</p>
+      </EmptyState>,
+    );
     expect(screen.getByText('📭')).toBeInTheDocument();
     expect(screen.getByText('Nothing here')).toBeInTheDocument();
     expect(screen.getByText('Import something.')).toBeInTheDocument();
   });
 
   it('renders title without icon when only title is provided', () => {
-    render(<EmptyState title="Empty"><p>body</p></EmptyState>);
+    render(
+      <EmptyState title='Empty'>
+        <p>body</p>
+      </EmptyState>,
+    );
     expect(screen.getByText('Empty')).toBeInTheDocument();
     expect(screen.queryByText('📭')).toBeNull();
   });

@@ -30,7 +30,9 @@ describe('MetricCards', () => {
   });
 
   it('applies cls as extra className on the card element', () => {
-    const { container } = render(<MetricCards cards={[{ label: 'x', value: 1, cls: 'pass' }]} />);
+    const { container } = render(
+      <MetricCards cards={[{ label: 'x', value: 1, cls: 'pass' }]} />,
+    );
     expect(container.querySelector('.metric-card.pass')).toBeTruthy();
   });
 });

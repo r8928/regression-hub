@@ -4,7 +4,7 @@ import PriorityBadge, { priorityBadgeStyle } from '../PriorityBadge';
 
 describe('PriorityBadge', () => {
   it('renders the priority label inside a span', () => {
-    render(<PriorityBadge priority="High" />);
+    render(<PriorityBadge priority='High' />);
     expect(screen.getByText('High')).toBeInTheDocument();
   });
 

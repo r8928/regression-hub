@@ -53,7 +53,12 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-h1, h2, h3, h4, h5, h6,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
 button,
 .page-eyebrow,
 .page-title,
@@ -160,7 +165,9 @@ a {
   font-size: 14px;
   display: grid;
   place-items: center;
-  transition: background 150ms, color 150ms;
+  transition:
+    background 150ms,
+    color 150ms;
 }
 
 .sidebar-toggle:hover {
@@ -186,7 +193,9 @@ nav {
   font-size: 13.5px;
   font-weight: 500;
   white-space: nowrap;
-  transition: background 150ms, color 150ms;
+  transition:
+    background 150ms,
+    color 150ms;
 }
 
 .nav-item:hover {
@@ -365,7 +374,9 @@ nav {
   font-size: 13.5px;
   color: var(--ink);
   background: var(--surface);
-  transition: border-color 150ms, box-shadow 150ms;
+  transition:
+    border-color 150ms,
+    box-shadow 150ms;
   width: 100%;
 }
 
@@ -388,7 +399,10 @@ nav {
   font-size: 13.5px;
   font-weight: 500;
   border: 1px solid transparent;
-  transition: background 150ms, border-color 150ms, opacity 150ms;
+  transition:
+    background 150ms,
+    border-color 150ms,
+    opacity 150ms;
   white-space: nowrap;
 }
 
@@ -547,7 +561,9 @@ tbody tr:hover td {
   padding: 24px;
   text-align: center;
   cursor: pointer;
-  transition: border-color 150ms, background 150ms;
+  transition:
+    border-color 150ms,
+    background 150ms;
   background: var(--surface-2);
 }
 
@@ -557,7 +573,7 @@ tbody tr:hover td {
   background: rgba(13, 148, 136, 0.03);
 }
 
-.upload-zone input[type="file"] {
+.upload-zone input[type='file'] {
   display: none;
 }
 

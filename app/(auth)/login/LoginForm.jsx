@@ -31,14 +31,22 @@ export default function LoginForm({ redirectTo }) {
   return (
     <form onSubmit={handleSubmit}>
       <div style={{ marginBottom: 16 }}>
-        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+        <label
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#374151',
+            marginBottom: 6,
+          }}
+        >
           Username
         </label>
         <input
-          type="text"
+          type='text'
           value={username}
           onChange={(e) => setUsername(e.target.value)}
-          placeholder="e.g. qa-radius"
+          placeholder='e.g. qa-radius'
           required
           autoFocus
           style={{
@@ -51,20 +59,28 @@ export default function LoginForm({ redirectTo }) {
             boxSizing: 'border-box',
             transition: 'border-color 0.15s',
           }}
-          onFocus={(e) => e.target.style.borderColor = '#0d9488'}
-          onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+          onFocus={(e) => (e.target.style.borderColor = '#0d9488')}
+          onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
         />
       </div>
 
       <div style={{ marginBottom: 24 }}>
-        <label style={{ display: 'block', fontSize: 13, fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+        <label
+          style={{
+            display: 'block',
+            fontSize: 13,
+            fontWeight: 600,
+            color: '#374151',
+            marginBottom: 6,
+          }}
+        >
           Password
         </label>
         <input
-          type="password"
+          type='password'
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          placeholder="Enter your password"
+          placeholder='Enter your password'
           required
           style={{
             width: '100%',
@@ -76,32 +92,36 @@ export default function LoginForm({ redirectTo }) {
             boxSizing: 'border-box',
             transition: 'border-color 0.15s',
           }}
-          onFocus={(e) => e.target.style.borderColor = '#0d9488'}
-          onBlur={(e) => e.target.style.borderColor = '#e2e8f0'}
+          onFocus={(e) => (e.target.style.borderColor = '#0d9488')}
+          onBlur={(e) => (e.target.style.borderColor = '#e2e8f0')}
         />
       </div>
 
       {error && (
-        <div style={{
-          background: '#fef2f2',
-          border: '1px solid #fecaca',
-          borderRadius: 8,
-          padding: '10px 14px',
-          fontSize: 13,
-          color: '#dc2626',
-          marginBottom: 16,
-        }}>
+        <div
+          style={{
+            background: '#fef2f2',
+            border: '1px solid #fecaca',
+            borderRadius: 8,
+            padding: '10px 14px',
+            fontSize: 13,
+            color: '#dc2626',
+            marginBottom: 16,
+          }}
+        >
           {error}
         </div>
       )}
 
       <button
-        type="submit"
+        type='submit'
         disabled={loading}
         style={{
           width: '100%',
           padding: '11px',
-          background: loading ? '#94a3b8' : 'linear-gradient(135deg, #0d9488, #0f766e)',
+          background: loading
+            ? '#94a3b8'
+            : 'linear-gradient(135deg, #0d9488, #0f766e)',
           color: '#fff',
           border: 'none',
           borderRadius: 8,

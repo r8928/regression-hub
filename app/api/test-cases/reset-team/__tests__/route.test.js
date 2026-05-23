@@ -10,14 +10,19 @@ vi.mock('@/lib/server/withTeam', () => {
   const wrap = (handler, admin) => async (req, ctx) => {
     try {
       return await handler(req, ctx, {
-        session: { user: { id: 'u1', teamId: 't1', role: admin ? 'admin' : 'qa' } },
+        session: {
+          user: { id: 'u1', teamId: 't1', role: admin ? 'admin' : 'qa' },
+        },
         teamId: 't1',
         db,
       });
     } catch (err) {
       if (err?.name === 'ApiError') {
         const { NextResponse } = await import('next/server');
-        return NextResponse.json({ error: err.message }, { status: err.status });
+        return NextResponse.json(
+          { error: err.message },
+          { status: err.status },
+        );
       }
       throw err;
     }

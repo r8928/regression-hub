@@ -18,12 +18,19 @@ export default function ToastProvider() {
     const handler = (toast) => {
       setToasts((prev) => [...prev, toast]);
       setTimeout(() => {
-        setToasts((prev) => prev.map((t) => t.id === toast.id ? { ...t, leaving: true } : t));
-        setTimeout(() => setToasts((prev) => prev.filter((t) => t.id !== toast.id)), 220);
+        setToasts((prev) =>
+          prev.map((t) => (t.id === toast.id ? { ...t, leaving: true } : t)),
+        );
+        setTimeout(
+          () => setToasts((prev) => prev.filter((t) => t.id !== toast.id)),
+          220,
+        );
       }, toast.duration);
     };
     toastListeners.push(handler);
-    return () => { toastListeners = toastListeners.filter((fn) => fn !== handler); };
+    return () => {
+      toastListeners = toastListeners.filter((fn) => fn !== handler);
+    };
   }, []);
 
   if (!toasts.length) return null;
@@ -31,9 +38,12 @@ export default function ToastProvider() {
   const icons = { success: '✓', error: '✕', info: 'ℹ' };
 
   return (
-    <div className="toast-container">
+    <div className='toast-container'>
       {toasts.map((t) => (
-        <div key={t.id} className={`toast ${t.type} ${t.leaving ? 'leaving' : ''}`}>
+        <div
+          key={t.id}
+          className={`toast ${t.type} ${t.leaving ? 'leaving' : ''}`}
+        >
           <span style={{ fontWeight: 700 }}>{icons[t.type] || '•'}</span>
           <span>{t.message}</span>
         </div>

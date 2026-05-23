@@ -29,6 +29,7 @@
 ## Reuse and Code Organization
 
 - DO NOT write DB queries inline in `page.js` or API route files — always extract to `lib/[name]Data.js` and import from there, even when only one caller exists today. Clean as you go
+- DO NOT hardcode domain enum literals (status, roles, priorities, assignment status, unassigned sentinel, confirm tokens); import from `@/lib/constants`. Clean as you go
 - DO NOT inline JSX blocks, hook logic, or utility patterns that duplicate an existing implementation in another page file; extract to `components/`, `hooks/`, or `utils/` before the second use. Clean as you go
 - DO NOT redefine a function locally if it is already exported from utils/; import from the shared module instead
 - DO NOT set font-family outside app/globals.css; self-host via app/fonts.js (next/font/google), no CDN links, no inline fontFamily props

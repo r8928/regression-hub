@@ -4,7 +4,7 @@ import RichTextDisplay from '@/components/RichTextDisplay';
 
 describe('RichTextDisplay', () => {
   it('returns null when value is empty string', () => {
-    const { container } = render(<RichTextDisplay value="" />);
+    const { container } = render(<RichTextDisplay value='' />);
     expect(container.firstChild).toBeNull();
   });
 
@@ -14,17 +14,19 @@ describe('RichTextDisplay', () => {
   });
 
   it('renders HTML content via dangerouslySetInnerHTML', () => {
-    render(<RichTextDisplay value="<p>Hello <strong>world</strong></p>" />);
+    render(<RichTextDisplay value='<p>Hello <strong>world</strong></p>' />);
     expect(screen.getByText('world')).toBeInTheDocument();
   });
 
   it('applies rte-display class name', () => {
-    const { container } = render(<RichTextDisplay value="<p>hi</p>" />);
+    const { container } = render(<RichTextDisplay value='<p>hi</p>' />);
     expect(container.firstChild).toHaveClass('rte-display');
   });
 
   it('appends extra className when provided', () => {
-    const { container } = render(<RichTextDisplay value="<p>hi</p>" className="extra" />);
+    const { container } = render(
+      <RichTextDisplay value='<p>hi</p>' className='extra' />,
+    );
     expect(container.firstChild).toHaveClass('extra');
   });
 

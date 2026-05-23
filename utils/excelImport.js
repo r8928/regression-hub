@@ -1,7 +1,13 @@
+import { COMPLETED_STATUSES } from '@/lib/constants';
 import * as XLSX from 'xlsx';
 import { canonicalColumn } from './canonicalColumn';
 
-const REQUIRED_COLUMNS = ['Module', 'Test Case ID', 'Test Case', 'Expected Result'];
+const REQUIRED_COLUMNS = [
+  'Module',
+  'Test Case ID',
+  'Test Case',
+  'Expected Result',
+];
 
 function normalizeText(value) {
   if (value === null || value === undefined) return '';
@@ -29,7 +35,9 @@ export function parseWorkbookBuffer(buffer, qaUsers = []) {
     if (!rows.length) continue;
 
     const headers = Object.keys(rows[0]);
-    const canonicalHeaders = new Map(headers.map((h) => [h, canonicalColumn(h)]));
+    const canonicalHeaders = new Map(
+      headers.map((h) => [h, canonicalColumn(h)]),
+    );
     const presentCanonical = new Set([...canonicalHeaders.values()]);
     const missing = REQUIRED_COLUMNS.filter((c) => !presentCanonical.has(c));
 
@@ -58,9 +66,12 @@ export function parseWorkbookBuffer(buffer, qaUsers = []) {
         steps: row['Steps'] || '',
         expectedResult: row['Expected Result'] || '',
         actualResult: row['Actual Result'] || '',
-        status: ['Pass', 'Fail'].includes(row['Status']) ? row['Status'] : '',
+        status: COMPLETED_STATUSES.includes(row['Status']) ? row['Status'] : '',
         defectsImprovements: row['Defects/Improvements'] || '',
-        testedBy: (!qaUsers.length || qaUsers.includes(row['Tested By'])) ? row['Tested By'] : '',
+        testedBy:
+          !qaUsers.length || qaUsers.includes(row['Tested By'])
+            ? row['Tested By']
+            : '',
         testedOn: row['Tested On'] || '',
         softwareVersionTested: row['Software Version Tested'] || '',
       });

@@ -7,7 +7,7 @@ const { getTeamSettings, updateTeamSettings, checkRateLimit } = vi.hoisted(
     getTeamSettings: vi.fn(),
     updateTeamSettings: vi.fn(),
     checkRateLimit: vi.fn(() => ({ ok: true })),
-  })
+  }),
 );
 
 vi.mock('@/lib/server/withTeam', () => ({

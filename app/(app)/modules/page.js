@@ -56,7 +56,7 @@ export default async function ModulesPage() {
                 acc.pending += g.pending;
                 return acc;
               },
-              { total: 0, passed: 0, failed: 0, pending: 0 }
+              { total: 0, passed: 0, failed: 0, pending: 0 },
             );
 
             return (

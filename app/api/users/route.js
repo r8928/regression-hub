@@ -16,7 +16,7 @@ export const POST = withAdmin(
     if (!rl.ok)
       return NextResponse.json(
         { error: 'Too many requests — try again shortly' },
-        { status: 429 }
+        { status: 429 },
       );
 
     const body = await request.json();
@@ -28,5 +28,5 @@ export const POST = withAdmin(
       teamName: session.user.teamName,
     });
     return NextResponse.json(result, { status: 201 });
-  }
+  },
 );

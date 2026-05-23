@@ -2,6 +2,7 @@ import MetricCards from '@/components/MetricCards';
 import PageHeader from '@/components/PageHeader';
 import SummaryRow from '@/components/SummaryRow';
 import { authOptions } from '@/lib/auth';
+import { STATUS } from '@/lib/constants';
 import { getDashboardData, getDashboardSettings } from '@/lib/db/dashboardData';
 import { getDb } from '@/lib/mongodb';
 import { getServerSession } from 'next-auth';
@@ -20,17 +21,17 @@ export default async function DashboardPage() {
   const { summary, moduleGroups, appGroups, testerGroups } = data;
 
   const donutData = [
-    { name: 'Pass', value: summary.passed },
-    { name: 'Fail', value: summary.failed },
-    { name: 'Pending', value: summary.pending },
+    { name: STATUS.PASS, value: summary.passed },
+    { name: STATUS.FAIL, value: summary.failed },
+    { name: STATUS.PENDING, value: summary.pending },
   ].filter((d) => d.value > 0);
 
   const moduleBarData = Object.entries(moduleGroups)
     .map(([name, g]) => ({
       name: name.length > 20 ? name.slice(0, 20) + '…' : name,
-      Pass: g.passed,
-      Fail: g.failed,
-      Pending: g.pending,
+      [STATUS.PASS]: g.passed,
+      [STATUS.FAIL]: g.failed,
+      [STATUS.PENDING]: g.pending,
     }))
     .slice(0, 20);
 
