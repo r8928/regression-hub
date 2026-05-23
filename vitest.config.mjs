@@ -7,6 +7,7 @@ export default defineConfig({
     setupFiles: ['./vitest.setup.js'],
     globals: true,
     include: ['**/__tests__/**/*.test.{js,jsx}'],
+    exclude: ['.claude/**', 'node_modules/**'],
   },
   resolve: {
     alias: { '@': path.resolve(process.cwd()) },
