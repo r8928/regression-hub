@@ -1,36 +1,15 @@
 'use client';
 
-import { useEditor, EditorContent } from '@tiptap/react';
+import FormatBoldIcon from '@mui/icons-material/FormatBold';
+import FormatIndentDecreaseIcon from '@mui/icons-material/FormatIndentDecrease';
+import FormatIndentIncreaseIcon from '@mui/icons-material/FormatIndentIncrease';
+import FormatItalicIcon from '@mui/icons-material/FormatItalic';
+import FormatListBulletedIcon from '@mui/icons-material/FormatListBulleted';
+import FormatListNumberedIcon from '@mui/icons-material/FormatListNumbered';
+import { Divider, Stack, ToggleButton, ToggleButtonGroup } from '@mui/material';
+import { EditorContent, useEditor } from '@tiptap/react';
 import StarterKit from '@tiptap/starter-kit';
 import { useEffect } from 'react';
-
-// ── Toolbar button ──────────────────────────────────────────────────────────
-function ToolBtn({ onClick, active, title, children }) {
-  return (
-    <button
-      type='button'
-      onMouseDown={(e) => {
-        e.preventDefault();
-        onClick();
-      }}
-      title={title}
-      style={{
-        background: active ? 'var(--accent, #0d9488)' : 'transparent',
-        color: active ? '#fff' : 'var(--ink, #1e293b)',
-        border: '1px solid',
-        borderColor: active ? 'var(--accent, #0d9488)' : 'var(--line, #e2e8f0)',
-        borderRadius: 5,
-        padding: '2px 8px',
-        fontSize: 13,
-        cursor: 'pointer',
-        fontWeight: active ? 600 : 400,
-        lineHeight: '20px',
-      }}
-    >
-      {children}
-    </button>
-  );
-}
 
 // ── Editor ──────────────────────────────────────────────────────────────────
 /** @see {@link __tests__/RichTextEditor.test.jsx} */
@@ -68,64 +47,97 @@ export default function RichTextEditor({
   return (
     <div className='rte-wrap'>
       {/* Toolbar */}
-      <div className='rte-toolbar'>
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleBold().run()}
-          active={editor.isActive('bold')}
-          title='Bold'
-        >
-          B
-        </ToolBtn>
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleItalic().run()}
-          active={editor.isActive('italic')}
-          title='Italic'
-        >
-          <em>I</em>
-        </ToolBtn>
-        <span
-          style={{
-            width: 1,
-            background: 'var(--line, #e2e8f0)',
-            alignSelf: 'stretch',
-            margin: '0 4px',
-          }}
-        />
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleBulletList().run()}
-          active={editor.isActive('bulletList')}
-          title='Bullet list'
-        >
-          • List
-        </ToolBtn>
-        <ToolBtn
-          onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          active={editor.isActive('orderedList')}
-          title='Numbered list'
-        >
-          1. List
-        </ToolBtn>
-        <span
-          style={{
-            width: 1,
-            background: 'var(--line, #e2e8f0)',
-            alignSelf: 'stretch',
-            margin: '0 4px',
-          }}
-        />
-        <ToolBtn
-          onClick={() => editor.chain().focus().liftListItem('listItem').run()}
-          title='Outdent'
-        >
-          ⇤
-        </ToolBtn>
-        <ToolBtn
-          onClick={() => editor.chain().focus().sinkListItem('listItem').run()}
-          title='Indent'
-        >
-          ⇥
-        </ToolBtn>
-      </div>
+      <Stack
+        direction='row'
+        spacing={0.5}
+        className='rte-toolbar'
+        sx={{
+          alignItems: 'center',
+          p: 0.75,
+          borderBottom: 1,
+          borderColor: 'divider',
+        }}
+      >
+        {/* Text formatting group */}
+        <ToggleButtonGroup size='small' aria-label='text formatting'>
+          <ToggleButton
+            value='bold'
+            selected={editor.isActive('bold')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleBold().run();
+            }}
+            aria-label='bold'
+          >
+            <FormatBoldIcon fontSize='small' />
+          </ToggleButton>
+          <ToggleButton
+            value='italic'
+            selected={editor.isActive('italic')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleItalic().run();
+            }}
+            aria-label='italic'
+          >
+            <FormatItalicIcon fontSize='small' />
+          </ToggleButton>
+        </ToggleButtonGroup>
+
+        <Divider orientation='vertical' flexItem sx={{ mx: 0.5 }} />
+
+        {/* List formatting group */}
+        <ToggleButtonGroup size='small' aria-label='list formatting'>
+          <ToggleButton
+            value='bulletList'
+            selected={editor.isActive('bulletList')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleBulletList().run();
+            }}
+            aria-label='bullet list'
+          >
+            <FormatListBulletedIcon fontSize='small' />
+          </ToggleButton>
+          <ToggleButton
+            value='orderedList'
+            selected={editor.isActive('orderedList')}
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().toggleOrderedList().run();
+            }}
+            aria-label='numbered list'
+          >
+            <FormatListNumberedIcon fontSize='small' />
+          </ToggleButton>
+        </ToggleButtonGroup>
+
+        <Divider orientation='vertical' flexItem sx={{ mx: 0.5 }} />
+
+        {/* Indent group */}
+        <ToggleButtonGroup size='small' aria-label='indentation'>
+          <ToggleButton
+            value='outdent'
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().liftListItem('listItem').run();
+            }}
+            aria-label='outdent'
+          >
+            <FormatIndentDecreaseIcon fontSize='small' />
+          </ToggleButton>
+          <ToggleButton
+            value='indent'
+            onMouseDown={(e) => {
+              e.preventDefault();
+              editor.chain().focus().sinkListItem('listItem').run();
+            }}
+            aria-label='indent'
+          >
+            <FormatIndentIncreaseIcon fontSize='small' />
+          </ToggleButton>
+        </ToggleButtonGroup>
+      </Stack>
       {/* Content area */}
       <EditorContent editor={editor} />
       {!value && <div className='rte-placeholder'>{placeholder}</div>}

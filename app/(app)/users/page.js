@@ -1,9 +1,9 @@
+import { redirect } from 'next/navigation';
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { ROLES } from '@/lib/constants';
 import { getUsers } from '@/lib/db/usersData';
 import { getDb } from '@/lib/mongodb';
-import { getServerSession } from 'next-auth';
-import { redirect } from 'next/navigation';
 import UsersClient from './UsersClient';
 
 export const dynamic = 'force-dynamic';

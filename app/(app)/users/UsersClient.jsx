@@ -1,6 +1,6 @@
 'use client';
 
-import Modal from '@/components/Modal';
+import { locationToChipColor, roleToChipColor } from '@/app/theme';
 import PageHeader from '@/components/PageHeader';
 import ToastProvider, { showToast } from '@/components/Toast';
 import {
@@ -8,82 +8,38 @@ import {
   updateUser as apiUpdateUser,
 } from '@/lib/api/users';
 import { ROLES } from '@/lib/constants';
+import CheckIcon from '@mui/icons-material/Check';
+import CloseIcon from '@mui/icons-material/Close';
+import {
+  Alert,
+  Avatar,
+  Box,
+  Button,
+  Chip,
+  Collapse,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  MenuItem,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import Panel from '@/components/Panel';
 import { useRouter } from 'next/navigation';
 import { useState } from 'react';
-
-const ROLE_STYLE = {
-  [ROLES.ADMIN]: {
-    bg: 'rgba(13,148,136,0.12)',
-    border: 'rgba(13,148,136,0.4)',
-    color: '#0d9488',
-    label: 'Admin',
-  },
-  [ROLES.QA]: {
-    bg: 'rgba(8,145,178,0.12)',
-    border: 'rgba(8,145,178,0.4)',
-    color: '#0891b2',
-    label: 'QA',
-  },
-};
-
-const LOCATION_STYLE = {
-  radius: {
-    bg: 'rgba(13,148,136,0.1)',
-    border: 'rgba(13,148,136,0.3)',
-    color: '#0d9488',
-    label: 'Radius',
-  },
-  cb: {
-    bg: 'rgba(99,102,241,0.1)',
-    border: 'rgba(99,102,241,0.3)',
-    color: '#6366f1',
-    label: 'CB',
-  },
-};
-
-function RoleBadge({ role }) {
-  const s = ROLE_STYLE[role] || ROLE_STYLE[ROLES.QA];
-  return (
-    <span
-      style={{
-        display: 'inline-block',
-        padding: '2px 10px',
-        borderRadius: 20,
-        fontSize: 11,
-        fontWeight: 700,
-        background: s.bg,
-        border: `1px solid ${s.border}`,
-        color: s.color,
-      }}
-    >
-      {s.label}
-    </span>
-  );
-}
-
-function Avatar({ name, role }) {
-  const s = ROLE_STYLE[role] || ROLE_STYLE[ROLES.QA];
-  return (
-    <div
-      style={{
-        width: 36,
-        height: 36,
-        borderRadius: '50%',
-        background: s.bg,
-        border: `2px solid ${s.border}`,
-        color: s.color,
-        fontWeight: 700,
-        fontSize: 14,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      {(name || '?')[0].toUpperCase()}
-    </div>
-  );
-}
 
 const EMPTY_FORM = {
   name: '',
@@ -99,6 +55,12 @@ export default function UsersClient({ user, initialUsers }) {
   const router = useRouter();
   const users = initialUsers;
 
+  const roleInfoKey = `roleInfoDismissed:${user.id}`;
+  const [showRoleInfo, setShowRoleInfo] = useState(
+    () =>
+      typeof window === 'undefined' ||
+      sessionStorage.getItem(roleInfoKey) !== 'true',
+  );
   const [showAdd, setShowAdd] = useState(false);
   const [addForm, setAddForm] = useState(EMPTY_FORM);
   const [addSaving, setAddSaving] = useState(false);
@@ -110,6 +72,12 @@ export default function UsersClient({ user, initialUsers }) {
   const [pwdId, setPwdId] = useState(null);
   const [pwdForm, setPwdForm] = useState(EMPTY_PWD);
   const [pwdSaving, setPwdSaving] = useState(false);
+
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    message: '',
+    onConfirm: null,
+  });
 
   async function createUser(e) {
     e.preventDefault();
@@ -168,28 +136,30 @@ export default function UsersClient({ user, initialUsers }) {
     }
   }
 
-  async function toggleActive(u) {
+  function toggleActive(u) {
     const action = u.active !== false ? 'deactivate' : 'activate';
-    if (
-      !confirm(`${action.charAt(0).toUpperCase() + action.slice(1)} ${u.name}?`)
-    )
-      return;
-    try {
-      await apiUpdateUser(u._id, { active: u.active === false });
-      showToast(`User ${action}d`, 'success');
-      setEditId(null);
-      router.refresh();
-    } catch (err) {
-      showToast(err.message || 'Action failed', 'error');
-    }
+    setConfirmDialog({
+      open: true,
+      message: `${action.charAt(0).toUpperCase() + action.slice(1)} ${u.name}?`,
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+        try {
+          await apiUpdateUser(u._id, { active: u.active === false });
+          showToast(`User ${action}d`, 'success');
+          setEditId(null);
+          router.refresh();
+        } catch (err) {
+          showToast(err.message || 'Action failed', 'error');
+        }
+      },
+    });
   }
 
-  const locationStyle = LOCATION_STYLE[user.teamId] || LOCATION_STYLE.radius;
   const activeUsers = users.filter((u) => u.active !== false);
   const inactiveUsers = users.filter((u) => u.active === false);
 
   return (
-    <div>
+    <Box>
       <ToastProvider />
 
       {/* Header */}
@@ -197,207 +167,180 @@ export default function UsersClient({ user, initialUsers }) {
         eyebrow='Admin'
         title='User Management'
         sub={
-          <>
-            <span
-              style={{
-                display: 'inline-block',
-                padding: '2px 10px',
-                borderRadius: 20,
-                fontSize: 11,
-                fontWeight: 700,
-                background: locationStyle.bg,
-                border: `1px solid ${locationStyle.border}`,
-                color: locationStyle.color,
-              }}
-            >
-              {locationStyle.label}
-            </span>
-            {activeUsers.length} active · {inactiveUsers.length} inactive
-          </>
+          <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+            <Chip
+              label={user.teamName}
+              color={locationToChipColor(user.teamId)}
+              size='small'
+            />
+            <Typography variant='body2' color='text.secondary'>
+              {activeUsers.length} active · {inactiveUsers.length} inactive
+            </Typography>
+          </Stack>
         }
-        subStyle={{ display: 'flex', alignItems: 'center', gap: 8 }}
         actions={
-          <button
-            className='btn btn-primary'
+          <Button
+            variant='contained'
+            color='primary'
             onClick={() => {
               setAddForm(EMPTY_FORM);
               setShowAdd(true);
             }}
           >
             + Add User
-          </button>
+          </Button>
         }
       />
 
       {/* Role permissions info */}
-      <div
-        className='panel'
-        style={{
-          marginBottom: 20,
-          background:
-            'linear-gradient(135deg, rgba(13,148,136,0.04), rgba(8,145,178,0.04))',
-          border: '1px solid rgba(13,148,136,0.15)',
-        }}
-      >
-        <div className='panel-body' style={{ padding: '14px 20px' }}>
-          <div
-            style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 20 }}
-          >
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}
-              >
-                <RoleBadge role={ROLES.ADMIN} />
-                <span style={{ fontWeight: 600, fontSize: 13 }}>Admin</span>
-              </div>
-              <ul
-                style={{
-                  listStyle: 'none',
-                  padding: 0,
-                  margin: 0,
-                  display: 'grid',
-                  gap: 3,
-                }}
-              >
-                {[
+      <Collapse in={showRoleInfo}>
+        <Alert
+          variant='outlined'
+          severity='info'
+          onClose={() => {
+            sessionStorage.setItem(roleInfoKey, 'true');
+            setShowRoleInfo(false);
+          }}
+          sx={{ mb: 3 }}
+        >
+          <Grid container spacing={3}>
+            {[
+              {
+                role: ROLES.ADMIN,
+                label: 'Admin',
+                allow: [
                   'Manage users (create, edit, passwords)',
                   'Import Test Cases & manage versions',
                   'Clear all data',
                   'Full test case access',
                   'Assignments & reports',
-                ].map((item) => (
-                  <li
-                    key={item}
-                    style={{
-                      fontSize: 12,
-                      color: 'var(--muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5,
-                    }}
-                  >
-                    <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>{' '}
-                    {item}
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  marginBottom: 8,
-                }}
-              >
-                <RoleBadge role={ROLES.QA} />
-                <span style={{ fontWeight: 600, fontSize: 13 }}>QA</span>
-              </div>
-              <ul
-                style={{
-                  listStyle: 'none',
-                  padding: 0,
-                  margin: 0,
-                  display: 'grid',
-                  gap: 3,
-                }}
-              >
-                {[
+                ],
+                deny: [],
+              },
+              {
+                role: ROLES.QA,
+                label: 'QA',
+                allow: [
                   'View & fill test case results',
                   'Manage assignments',
                   'View reports & dashboard',
                   'Export data (Excel / PDF)',
-                ].map((item) => (
-                  <li
-                    key={item}
-                    style={{
-                      fontSize: 12,
-                      color: 'var(--muted)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 5,
-                    }}
-                  >
-                    <span style={{ color: '#16a34a', fontWeight: 700 }}>✓</span>{' '}
-                    {item}
-                  </li>
-                ))}
-                {['Import Test Cases', 'Clear data', 'Manage users'].map(
-                  (item) => (
-                    <li
-                      key={item}
-                      style={{
-                        fontSize: 12,
-                        color: 'var(--muted)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 5,
-                      }}
-                    >
-                      <span style={{ color: '#dc2626', fontWeight: 700 }}>
-                        ✗
-                      </span>{' '}
-                      {item}
-                    </li>
-                  ),
-                )}
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
+                ],
+                deny: ['Import Test Cases', 'Clear data', 'Manage users'],
+              },
+            ].map(({ role, label, allow, deny }) => (
+              <Grid key={role} size={6}>
+                <Typography variant='subtitle2' sx={{ mb: 1 }}>
+                  {label}
+                </Typography>
+                <List dense disablePadding>
+                  {allow.map((item) => (
+                    <ListItem key={item} sx={{ py: 0.25 }}>
+                      <ListItemIcon
+                        sx={{ minWidth: 28, color: 'success.main' }}
+                      >
+                        <CheckIcon fontSize='small' />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        slotProps={{
+                          primary: {
+                            variant: 'caption',
+                            color: 'text.disabled',
+                          },
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                  {deny.map((item) => (
+                    <ListItem key={item} sx={{ py: 0.25 }}>
+                      <ListItemIcon sx={{ minWidth: 28, color: 'error.main' }}>
+                        <CloseIcon fontSize='small' />
+                      </ListItemIcon>
+                      <ListItemText
+                        primary={item}
+                        slotProps={{
+                          primary: {
+                            variant: 'caption',
+                            color: 'text.disabled',
+                          },
+                        }}
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              </Grid>
+            ))}
+          </Grid>
+        </Alert>
+      </Collapse>
 
       {/* Users Table */}
-      <div className='panel'>
-        <div className='table-wrap'>
-          <table>
-            <thead>
-              <tr>
-                <th style={{ width: 44 }}></th>
-                <th>Name</th>
-                <th>Username</th>
-                <th>Role</th>
-                <th>Status</th>
-                <th>Created</th>
-                <th style={{ textAlign: 'right' }}>Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+      <Panel title='Users' sx={{ mb: 2.5 }}>
+        <TableContainer>
+          <Table size='small' stickyHeader>
+            <TableHead
+              sx={{
+                '& th': {
+                  bgcolor: 'action.selected',
+                  borderBottomWidth: 2,
+                  borderBottomColor: 'divider',
+                },
+              }}
+            >
+              <TableRow>
+                <TableCell sx={{ width: 44 }} />
+                <TableCell>Name</TableCell>
+                <TableCell>Username</TableCell>
+                <TableCell>Role</TableCell>
+                <TableCell>Status</TableCell>
+                <TableCell>Created</TableCell>
+                <TableCell align='right'>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
               {users.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan={7}
-                    style={{
-                      textAlign: 'center',
-                      padding: 32,
-                      color: 'var(--muted)',
-                    }}
-                  >
-                    No users found
-                  </td>
-                </tr>
+                <TableRow>
+                  <TableCell colSpan={7}>
+                    <Box sx={{ py: 5, textAlign: 'center' }}>
+                      <Typography variant='body2' color='text.disabled'>
+                        No users found
+                      </Typography>
+                    </Box>
+                  </TableCell>
+                </TableRow>
               ) : (
                 users.map((u) => {
                   const isSelf = u._id === user.id;
                   const isActive = u.active !== false;
                   const isEditing = editId === u._id;
+                  const isAdmin = u.role === ROLES.ADMIN;
 
                   return (
-                    <tr key={u._id} style={{ opacity: isActive ? 1 : 0.5 }}>
-                      <td style={{ padding: '10px 12px' }}>
-                        <Avatar name={u.name} role={u.role} />
-                      </td>
-                      <td>
+                    <TableRow
+                      key={u._id}
+                      hover
+                      sx={{ opacity: isActive ? 1 : 0.5 }}
+                    >
+                      <TableCell sx={{ py: 1.25, px: 1.5 }}>
+                        <Avatar
+                          sx={{
+                            width: 36,
+                            height: 36,
+                            bgcolor: isAdmin
+                              ? 'primary.main'
+                              : 'secondary.main',
+                            fontSize: 14,
+                            fontWeight: 700,
+                          }}
+                        >
+                          {(u.name || '?')[0].toUpperCase()}
+                        </Avatar>
+                      </TableCell>
+                      <TableCell>
                         {isEditing ? (
-                          <input
-                            className='field-input'
-                            style={{ padding: '4px 8px', fontSize: 13 }}
+                          <TextField
+                            size='small'
                             value={editForm.name}
                             onChange={(e) =>
                               setEditForm((f) => ({
@@ -407,34 +350,41 @@ export default function UsersClient({ user, initialUsers }) {
                             }
                           />
                         ) : (
-                          <span style={{ fontWeight: 600 }}>
-                            {u.name}
+                          <Stack
+                            direction='row'
+                            spacing={0.75}
+                            sx={{ alignItems: 'center' }}
+                          >
+                            <Typography variant='body2' fontWeight={600}>
+                              {u.name}
+                            </Typography>
                             {isSelf && (
-                              <span
-                                style={{
-                                  marginLeft: 6,
-                                  fontSize: 10,
-                                  color: 'var(--accent)',
-                                  fontWeight: 700,
-                                }}
+                              <Typography
+                                variant='caption'
+                                color='primary.main'
+                                fontWeight={700}
+                                fontSize={10}
                               >
                                 YOU
-                              </span>
+                              </Typography>
                             )}
-                          </span>
+                          </Stack>
                         )}
-                      </td>
-                      <td
-                        className='font-mono'
-                        style={{ fontSize: 12, color: 'var(--muted)' }}
+                      </TableCell>
+                      <TableCell
+                        sx={{
+                          fontSize: 12,
+                          color: 'text.disabled',
+                        }}
                       >
-                        {u.username}
-                      </td>
-                      <td>
+                        <Typography variant='mono'>{u.username}</Typography>
+                      </TableCell>
+                      <TableCell>
                         {isEditing ? (
-                          <select
-                            className='field-select'
-                            style={{ padding: '4px 8px', fontSize: 13 }}
+                          <TextField
+                            select
+                            size='small'
+                            label='Role'
                             value={editForm.role}
                             onChange={(e) =>
                               setEditForm((f) => ({
@@ -442,350 +392,355 @@ export default function UsersClient({ user, initialUsers }) {
                                 role: e.target.value,
                               }))
                             }
+                            sx={{ minWidth: 100 }}
                           >
-                            <option value={ROLES.ADMIN}>Admin</option>
-                            <option value={ROLES.QA}>QA</option>
-                          </select>
+                            <MenuItem value={ROLES.ADMIN}>Admin</MenuItem>
+                            <MenuItem value={ROLES.QA}>QA</MenuItem>
+                          </TextField>
                         ) : (
-                          <RoleBadge role={u.role} />
+                          <Chip
+                            label={u.role === ROLES.ADMIN ? 'Admin' : 'QA'}
+                            color={roleToChipColor(u.role)}
+                            size='small'
+                          />
                         )}
-                      </td>
-                      <td>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '2px 10px',
-                            borderRadius: 20,
-                            fontSize: 11,
-                            fontWeight: 600,
-                            background: isActive ? '#f0fdf4' : '#f3f4f6',
-                            border: `1px solid ${
-                              isActive ? '#bbf7d0' : '#e5e7eb'
-                            }`,
-                            color: isActive ? '#16a34a' : '#9ca3af',
-                          }}
-                        >
-                          {isActive ? 'Active' : 'Inactive'}
-                        </span>
-                      </td>
-                      <td style={{ fontSize: 12, color: 'var(--muted)' }}>
+                      </TableCell>
+                      <TableCell>
+                        <Chip
+                          label={isActive ? 'Active' : 'Inactive'}
+                          color={isActive ? 'success' : 'default'}
+                          size='small'
+                          variant={isActive ? 'filled' : 'outlined'}
+                        />
+                      </TableCell>
+                      <TableCell sx={{ fontSize: 12, color: 'text.disabled' }}>
                         {u.createdAt
                           ? new Date(u.createdAt).toLocaleDateString()
                           : '—'}
-                      </td>
-                      <td style={{ textAlign: 'right' }}>
+                      </TableCell>
+                      <TableCell align='right'>
                         {isEditing ? (
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: 6,
-                              justifyContent: 'flex-end',
-                            }}
+                          <Stack
+                            direction='row'
+                            spacing={0.75}
+                            sx={{ justifyContent: 'flex-end' }}
                           >
-                            <button
-                              className='btn btn-secondary btn-sm'
+                            <Button
+                              variant='outlined'
+                              size='small'
                               onClick={() => setEditId(null)}
                             >
                               Cancel
-                            </button>
-                            <button
-                              className='btn btn-primary btn-sm'
+                            </Button>
+                            <Button
+                              variant='contained'
+                              color='primary'
+                              size='small'
+                              loading={editSaving}
                               onClick={() => saveEdit(u._id)}
-                              disabled={editSaving}
                             >
-                              {editSaving ? 'Saving…' : 'Save'}
-                            </button>
-                          </div>
+                              Save
+                            </Button>
+                          </Stack>
                         ) : (
-                          <div
-                            style={{
-                              display: 'flex',
-                              gap: 6,
-                              justifyContent: 'flex-end',
-                            }}
+                          <Stack
+                            direction='row'
+                            spacing={0.75}
+                            sx={{ justifyContent: 'flex-end' }}
                           >
-                            <button
-                              className='btn btn-secondary btn-sm'
+                            <Button
+                              variant='outlined'
+                              size='small'
+                              title='Edit name / role'
                               onClick={() => {
                                 setEditId(u._id);
                                 setEditForm({ name: u.name, role: u.role });
                               }}
-                              title='Edit name / role'
                             >
                               Edit
-                            </button>
-                            <button
-                              className='btn btn-secondary btn-sm'
+                            </Button>
+                            <Button
+                              variant='outlined'
+                              size='small'
+                              title='Change password'
                               onClick={() => {
                                 setPwdId(u._id);
                                 setPwdForm(EMPTY_PWD);
                               }}
-                              title='Change password'
                             >
                               Password
-                            </button>
+                            </Button>
                             {!isSelf && (
-                              <button
-                                className={`btn btn-sm ${
-                                  isActive ? 'btn-danger' : 'btn-secondary'
-                                }`}
-                                onClick={() => toggleActive(u)}
+                              <Button
+                                variant='outlined'
+                                color={isActive ? 'error' : 'inherit'}
+                                size='small'
                                 title={
                                   isActive
                                     ? 'Deactivate user'
                                     : 'Reactivate user'
                                 }
-                                style={{ padding: '5px 10px' }}
+                                onClick={() => toggleActive(u)}
                               >
                                 {isActive ? '⊘' : '↺'}
-                              </button>
+                              </Button>
                             )}
-                          </div>
+                          </Stack>
                         )}
-                      </td>
-                    </tr>
+                      </TableCell>
+                    </TableRow>
                   );
                 })
               )}
-            </tbody>
-          </table>
-        </div>
-      </div>
+            </TableBody>
+          </Table>
+        </TableContainer>
+      </Panel>
 
-      {/* Add User Modal */}
-      {showAdd && (
-        <Modal
-          title='Add New User'
-          onClose={() => {
-            setShowAdd(false);
-            setAddForm(EMPTY_FORM);
-          }}
-        >
-          <form onSubmit={createUser} style={{ display: 'grid', gap: 14 }}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 12,
-              }}
+      {/* Add User Dialog */}
+      <Dialog
+        open={showAdd}
+        onClose={() => {
+          setShowAdd(false);
+          setAddForm(EMPTY_FORM);
+        }}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>Add New User</DialogTitle>
+        <DialogContent dividers>
+          <Box
+            component='form'
+            onSubmit={createUser}
+            sx={{ display: 'grid', gap: 1.75 }}
+          >
+            <Box
+              sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}
             >
-              <div className='field-group'>
-                <label className='field-label'>Full name</label>
-                <input
-                  className='field-input'
-                  type='text'
-                  value={addForm.name}
-                  onChange={(e) =>
-                    setAddForm((f) => ({ ...f, name: e.target.value }))
-                  }
-                  placeholder='e.g. Maria'
-                  required
-                />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Username</label>
-                <input
-                  className='field-input'
-                  type='text'
-                  value={addForm.username}
-                  onChange={(e) =>
-                    setAddForm((f) => ({
-                      ...f,
-                      username: e.target.value.toLowerCase().replace(/\s/g, ''),
-                    }))
-                  }
-                  placeholder='e.g. maria'
-                  required
-                />
-              </div>
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Role</label>
-              <div style={{ display: 'flex', gap: 8 }}>
+              <TextField
+                size='small'
+                fullWidth
+                label='Full name'
+                type='text'
+                value={addForm.name}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, name: e.target.value }))
+                }
+                placeholder='e.g. Maria'
+                required
+              />
+              <TextField
+                size='small'
+                fullWidth
+                label='Username'
+                type='text'
+                value={addForm.username}
+                onChange={(e) =>
+                  setAddForm((f) => ({
+                    ...f,
+                    username: e.target.value.toLowerCase().replace(/\s/g, ''),
+                  }))
+                }
+                placeholder='e.g. maria'
+                required
+              />
+            </Box>
+
+            <Box>
+              <Typography
+                variant='caption'
+                color='text.secondary'
+                sx={{ mb: 0.75, display: 'block' }}
+              >
+                Role
+              </Typography>
+              <Stack direction='row' spacing={1}>
                 {[ROLES.QA, ROLES.ADMIN].map((r) => (
-                  <button
+                  <Button
                     key={r}
                     type='button'
+                    variant={addForm.role === r ? 'contained' : 'outlined'}
+                    color={r === ROLES.ADMIN ? 'primary' : 'secondary'}
                     onClick={() => setAddForm((f) => ({ ...f, role: r }))}
-                    style={{
-                      flex: 1,
-                      padding: '8px 12px',
-                      borderRadius: 8,
-                      cursor: 'pointer',
-                      fontSize: 13,
-                      border: `1.5px solid ${
-                        addForm.role === r
-                          ? r === ROLES.ADMIN
-                            ? '#0d9488'
-                            : '#0891b2'
-                          : 'var(--line)'
-                      }`,
-                      background:
-                        addForm.role === r
-                          ? r === ROLES.ADMIN
-                            ? 'rgba(13,148,136,0.08)'
-                            : 'rgba(8,145,178,0.08)'
-                          : '#fff',
-                      color:
-                        addForm.role === r
-                          ? r === ROLES.ADMIN
-                            ? '#0d9488'
-                            : '#0891b2'
-                          : 'var(--fg)',
-                      fontWeight: addForm.role === r ? 700 : 400,
-                    }}
+                    sx={{ flex: 1 }}
                   >
                     {r === ROLES.ADMIN ? '⚙ Admin' : '◎ QA'}
-                  </button>
+                  </Button>
                 ))}
-              </div>
-              <p style={{ marginTop: 6, fontSize: 11, color: 'var(--muted)' }}>
+              </Stack>
+              <Typography
+                variant='caption'
+                color='text.disabled'
+                sx={{ mt: 0.75, display: 'block' }}
+              >
                 {addForm.role === ROLES.ADMIN
                   ? 'Can manage users, import test cases, clear data, and manage versions.'
                   : 'Can fill test results, manage assignments, and export data.'}
-              </p>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 12,
-              }}
+              </Typography>
+            </Box>
+
+            <Box
+              sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}
             >
-              <div className='field-group'>
-                <label className='field-label'>Password</label>
-                <input
-                  className='field-input'
-                  type='password'
-                  value={addForm.password}
-                  onChange={(e) =>
-                    setAddForm((f) => ({ ...f, password: e.target.value }))
-                  }
-                  placeholder='Min. 8 characters'
-                  required
-                  minLength={8}
-                />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Confirm password</label>
-                <input
-                  className='field-input'
-                  type='password'
-                  value={addForm.confirmPassword}
-                  onChange={(e) =>
-                    setAddForm((f) => ({
-                      ...f,
-                      confirmPassword: e.target.value,
-                    }))
-                  }
-                  placeholder='Repeat password'
-                  required
-                />
-              </div>
-            </div>
-            <div
-              style={{
-                padding: '10px 14px',
-                background: 'rgba(13,148,136,0.06)',
-                borderRadius: 8,
-                border: '1px solid rgba(13,148,136,0.2)',
-                fontSize: 12,
-                color: 'var(--muted)',
-              }}
-            >
-              This user will be added to the{' '}
-              <strong style={{ color: 'var(--fg)' }}>{user.teamName}</strong>{' '}
+              <TextField
+                size='small'
+                fullWidth
+                label='Password'
+                type='password'
+                value={addForm.password}
+                onChange={(e) =>
+                  setAddForm((f) => ({ ...f, password: e.target.value }))
+                }
+                placeholder='Min. 8 characters'
+                required
+                inputProps={{ minLength: 8 }}
+              />
+              <TextField
+                size='small'
+                fullWidth
+                label='Confirm password'
+                type='password'
+                value={addForm.confirmPassword}
+                onChange={(e) =>
+                  setAddForm((f) => ({
+                    ...f,
+                    confirmPassword: e.target.value,
+                  }))
+                }
+                placeholder='Repeat password'
+                required
+              />
+            </Box>
+
+            <Alert severity='info'>
+              This user will be added to the <strong>{user.teamName}</strong>{' '}
               location and can only see that location&apos;s data.
-            </div>
-            <div
-              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
+            </Alert>
+
+            <Stack
+              direction='row'
+              spacing={1.25}
+              sx={{ justifyContent: 'flex-end' }}
             >
-              <button
+              <Button
                 type='button'
-                className='btn btn-secondary'
+                variant='outlined'
                 onClick={() => {
                   setShowAdd(false);
                   setAddForm(EMPTY_FORM);
                 }}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type='submit'
-                className='btn btn-primary'
-                disabled={addSaving}
+                variant='contained'
+                color='primary'
+                loading={addSaving}
               >
-                {addSaving ? 'Creating…' : 'Create User'}
-              </button>
-            </div>
-          </form>
-        </Modal>
-      )}
+                Create User
+              </Button>
+            </Stack>
+          </Box>
+        </DialogContent>
+      </Dialog>
 
-      {/* Change Password Modal */}
-      {pwdId && (
-        <Modal
-          title={`Change Password — ${
-            users.find((u) => u._id === pwdId)?.name ?? 'Unknown'
-          }`}
-          onClose={() => {
-            setPwdId(null);
-            setPwdForm(EMPTY_PWD);
-          }}
-        >
-          <div style={{ display: 'grid', gap: 14 }}>
-            <div className='field-group'>
-              <label className='field-label'>New password</label>
-              <input
-                className='field-input'
-                type='password'
-                value={pwdForm.password}
-                onChange={(e) =>
-                  setPwdForm((f) => ({ ...f, password: e.target.value }))
-                }
-                placeholder='Min. 8 characters'
-                required
-                minLength={8}
-              />
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Confirm password</label>
-              <input
-                className='field-input'
-                type='password'
-                value={pwdForm.confirmPassword}
-                onChange={(e) =>
-                  setPwdForm((f) => ({ ...f, confirmPassword: e.target.value }))
-                }
-                placeholder='Repeat password'
-                required
-              />
-            </div>
-            <div
-              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
+      {/* Confirm Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        maxWidth='xs'
+      >
+        <DialogTitle>Confirm</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setConfirmDialog((prev) => ({ ...prev, open: false }))
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            variant='contained'
+            color='error'
+            onClick={confirmDialog.onConfirm}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Change Password Dialog */}
+      <Dialog
+        open={!!pwdId}
+        onClose={() => {
+          setPwdId(null);
+          setPwdForm(EMPTY_PWD);
+        }}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>
+          Change Password —{' '}
+          {users.find((u) => u._id === pwdId)?.name ?? 'Unknown'}
+        </DialogTitle>
+        <DialogContent dividers>
+          <Stack spacing={1.75}>
+            <TextField
+              size='small'
+              fullWidth
+              label='New password'
+              type='password'
+              value={pwdForm.password}
+              onChange={(e) =>
+                setPwdForm((f) => ({ ...f, password: e.target.value }))
+              }
+              placeholder='Min. 8 characters'
+              required
+              inputProps={{ minLength: 8 }}
+            />
+            <TextField
+              size='small'
+              fullWidth
+              label='Confirm password'
+              type='password'
+              value={pwdForm.confirmPassword}
+              onChange={(e) =>
+                setPwdForm((f) => ({ ...f, confirmPassword: e.target.value }))
+              }
+              placeholder='Repeat password'
+              required
+            />
+            <Stack
+              direction='row'
+              spacing={1.25}
+              sx={{ justifyContent: 'flex-end' }}
             >
-              <button
-                className='btn btn-secondary'
+              <Button
+                variant='outlined'
                 onClick={() => {
                   setPwdId(null);
                   setPwdForm(EMPTY_PWD);
                 }}
               >
                 Cancel
-              </button>
-              <button
-                className='btn btn-primary'
+              </Button>
+              <Button
+                variant='contained'
+                color='primary'
+                loading={pwdSaving}
+                disabled={!pwdForm.password || pwdForm.password.length < 8}
                 onClick={() => savePassword(pwdId)}
-                disabled={
-                  pwdSaving || !pwdForm.password || pwdForm.password.length < 8
-                }
               >
-                {pwdSaving ? 'Saving…' : 'Update Password'}
-              </button>
-            </div>
-          </div>
-        </Modal>
-      )}
-    </div>
+                Update Password
+              </Button>
+            </Stack>
+          </Stack>
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 }

@@ -1,9 +1,36 @@
 'use client';
 
+import AssignmentOutlined from '@mui/icons-material/AssignmentOutlined';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import {
+  Accordion,
+  AccordionDetails,
+  AccordionSummary,
+  Alert,
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  LinearProgress,
+  MenuItem,
+  Paper,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  ToggleButton,
+  ToggleButtonGroup,
+  Typography,
+} from '@mui/material';
+import { useRouter } from 'next/navigation';
+import { useState } from 'react';
+import { priorityToColor } from '@/app/theme';
 import EmptyState from '@/components/EmptyState';
-import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
-import PriorityBadge from '@/components/PriorityBadge';
 import ToastProvider, { showToast } from '@/components/Toast';
 import {
   createAssignment as apiCreateAssignment,
@@ -15,55 +42,46 @@ import {
   PRIORITIES,
   PRIORITY_DEFAULT,
 } from '@/lib/constants';
-import Link from 'next/link';
-import { useRouter } from 'next/navigation';
-import { useState } from 'react';
 
 function ProgressBar({ completed, total }) {
   const pct = total > 0 ? Math.round((completed / total) * 100) : 0;
-  const color = pct === 100 ? '#16a34a' : pct > 50 ? '#0891b2' : '#d97706';
+  const color = pct === 100 ? 'success' : pct > 50 ? 'info' : 'warning';
   return (
-    <div>
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          fontSize: 12,
-          color: 'var(--muted)',
-          marginBottom: 4,
-        }}
-      >
-        <span>
+    <Box>
+      <Stack direction='row' sx={{ justifyContent: 'space-between', mb: 0.5 }}>
+        <Typography variant='caption' color='text.disabled'>
           {completed} / {total} tested
-        </span>
-        <span style={{ fontWeight: 600, color }}>{pct}%</span>
-      </div>
-      <div
-        style={{
-          height: 6,
-          borderRadius: 4,
-          background: 'var(--line)',
-          overflow: 'hidden',
-        }}
-      >
-        <div
-          style={{
-            width: `${pct}%`,
-            height: '100%',
-            background: color,
-            borderRadius: 4,
-            transition: 'width 0.3s',
-          }}
-        />
-      </div>
-    </div>
+        </Typography>
+        <Typography
+          variant='caption'
+          fontWeight={600}
+          color={
+            pct === 100
+              ? 'success.main'
+              : pct > 50
+                ? 'info.main'
+                : 'warning.main'
+          }
+        >
+          {pct}%
+        </Typography>
+      </Stack>
+      <LinearProgress
+        variant='determinate'
+        value={pct}
+        color={color}
+        sx={{ borderRadius: 1, height: 6 }}
+      />
+    </Box>
   );
 }
 
 function DueDate({ dueDate }) {
   if (!dueDate)
     return (
-      <span style={{ color: 'var(--muted)', fontSize: 12 }}>No due date</span>
+      <Typography component='span' variant='caption' color='text.disabled'>
+        No due date
+      </Typography>
     );
   const due = new Date(dueDate);
   const now = new Date();
@@ -77,15 +95,16 @@ function DueDate({ dueDate }) {
         ? 'Due tomorrow'
         : `Due in ${diff}d`;
   return (
-    <span
-      style={{
-        fontSize: 12,
-        fontWeight: 600,
-        color: isOverdue ? '#dc2626' : diff <= 2 ? '#d97706' : 'var(--muted)',
-      }}
+    <Typography
+      component='span'
+      variant='caption'
+      fontWeight={600}
+      color={
+        isOverdue ? 'error.main' : diff <= 2 ? 'warning.main' : 'text.disabled'
+      }
     >
       ◷ {due.toLocaleDateString()} — {label}
-    </span>
+    </Typography>
   );
 }
 
@@ -117,6 +136,12 @@ export default function AssignmentsClient({
   const [editId, setEditId] = useState(null);
   const [editForm, setEditForm] = useState({});
 
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    message: '',
+    onConfirm: null,
+  });
+
   async function createAssignment(e) {
     e.preventDefault();
     if (!form.assignedTo) {
@@ -145,20 +170,22 @@ export default function AssignmentsClient({
     }
   }
 
-  async function cancelAssignment(id) {
-    if (
-      !confirm(
+  function cancelAssignment(id) {
+    setConfirmDialog({
+      open: true,
+      message:
         'Cancel this assignment? The test cases will remain but lose their assignment.',
-      )
-    )
-      return;
-    try {
-      await apiDeleteAssignment(id);
-      showToast('Assignment cancelled', 'info');
-      router.refresh();
-    } catch (err) {
-      showToast(err.message || 'Failed to cancel', 'error');
-    }
+      onConfirm: async () => {
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+        try {
+          await apiDeleteAssignment(id);
+          showToast('Assignment cancelled', 'info');
+          router.refresh();
+        } catch (err) {
+          showToast(err.message || 'Failed to cancel', 'error');
+        }
+      },
+    });
   }
 
   async function saveEdit(id) {
@@ -184,7 +211,7 @@ export default function AssignmentsClient({
   );
 
   return (
-    <div>
+    <Box>
       <ToastProvider />
 
       {/* Header */}
@@ -193,75 +220,46 @@ export default function AssignmentsClient({
         title='Assignments'
         sub='Assign test cases and modules to team members'
         actions={
-          <button
-            className='btn btn-primary'
+          <Button
+            variant='contained'
             onClick={() => {
               setForm(EMPTY_FORM);
               setShowModal(true);
             }}
           >
             + New Assignment
-          </button>
+          </Button>
         }
       />
 
       {/* Tabs */}
-      <div
-        style={{
-          display: 'flex',
-          gap: 4,
-          marginBottom: 20,
-          borderBottom: '1px solid var(--line)',
-          paddingBottom: 0,
-        }}
+      <Tabs
+        value={view}
+        onChange={(_, v) => v && router.push(`?view=${v}`)}
+        sx={{ mb: 2.5, borderBottom: 1, borderColor: 'divider' }}
       >
-        {[
-          { key: 'mine', label: 'Assigned to Me' },
-          { key: 'sent', label: 'Assigned by Me' },
-        ].map(({ key, label }) => (
-          <Link
-            key={key}
-            href={`?view=${key}`}
-            style={{
-              padding: '8px 18px',
-              display: 'inline-block',
-              textDecoration: 'none',
-              borderBottom:
-                view === key
-                  ? '2px solid var(--accent)'
-                  : '2px solid transparent',
-              background: 'none',
-              cursor: 'pointer',
-              fontSize: 14,
-              fontWeight: view === key ? 700 : 400,
-              color: view === key ? 'var(--accent)' : 'var(--muted)',
-              marginBottom: -1,
-              borderRadius: '4px 4px 0 0',
-            }}
-          >
-            {label}
-          </Link>
-        ))}
-      </div>
+        <Tab label='Assigned to Me' value='mine' />
+        <Tab label='Assigned by Me' value='sent' />
+      </Tabs>
 
       {/* Cards */}
       {active.length === 0 ? (
         <EmptyState
-          icon='◷'
+          icon={<AssignmentOutlined />}
           title={
             view === 'mine'
               ? 'No assignments for you yet'
               : "You haven't assigned anything yet"
           }
         >
-          <p style={{ marginTop: 6, color: 'var(--muted)' }}>
+          <Typography variant='body2' color='text.disabled' sx={{ mt: 0.75 }}>
             {view === 'mine'
               ? 'Ask a team member to assign test cases to you.'
               : 'Click "New Assignment" to assign a module or test cases.'}
-          </p>
+          </Typography>
         </EmptyState>
       ) : (
-        <div style={{ display: 'grid', gap: 14 }}>
+        <Stack spacing={1.75}>
           {active.map((a) => (
             <AssignmentCard
               key={a._id}
@@ -286,169 +284,203 @@ export default function AssignmentsClient({
               onViewCases={() => viewCases(a)}
             />
           ))}
-        </div>
+        </Stack>
       )}
 
       {cancelled.length > 0 && (
-        <details style={{ marginTop: 24 }}>
-          <summary
-            style={{
-              cursor: 'pointer',
-              color: 'var(--muted)',
-              fontSize: 13,
-              fontWeight: 600,
-              userSelect: 'none',
-            }}
-          >
-            {cancelled.length} cancelled assignment
-            {cancelled.length !== 1 ? 's' : ''}
-          </summary>
-          <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
-            {cancelled.map((a) => (
-              <div
-                key={a._id}
-                className='panel'
-                style={{
-                  opacity: 0.55,
-                  padding: '14px 18px',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                }}
-              >
-                <div>
-                  <div style={{ fontWeight: 600, fontSize: 14 }}>{a.title}</div>
-                  <div
-                    style={{
-                      fontSize: 12,
-                      color: 'var(--muted)',
-                      marginTop: 2,
-                    }}
-                  >
-                    {a.assignedBy} → {a.assignedTo} · {a.testCaseCount} cases ·
-                    Cancelled
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </details>
+        <Accordion
+          disableGutters
+          elevation={0}
+          variant='outlined'
+          sx={{ mt: 3 }}
+        >
+          <AccordionSummary expandIcon={<ExpandMoreIcon />}>
+            <Typography variant='body2'>
+              Cancelled ({cancelled.length})
+            </Typography>
+          </AccordionSummary>
+          <AccordionDetails sx={{ p: 0 }}>
+            <Stack spacing={1.25} sx={{ p: 1.25 }}>
+              {cancelled.map((a) => (
+                <Paper
+                  key={a._id}
+                  variant='outlined'
+                  sx={{
+                    opacity: 0.55,
+                    px: 2.25,
+                    py: 1.75,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                  }}
+                >
+                  <Box>
+                    <Typography variant='body2' fontWeight={600}>
+                      {a.title}
+                    </Typography>
+                    <Typography
+                      variant='caption'
+                      color='text.disabled'
+                      sx={{ mt: 0.25, display: 'block' }}
+                    >
+                      {a.assignedBy} → {a.assignedTo} · {a.testCaseCount} cases
+                      · Cancelled
+                    </Typography>
+                  </Box>
+                </Paper>
+              ))}
+            </Stack>
+          </AccordionDetails>
+        </Accordion>
       )}
 
+      {/* Confirm Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        maxWidth='xs'
+      >
+        <DialogTitle>Confirm</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setConfirmDialog((prev) => ({ ...prev, open: false }))
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            variant='contained'
+            color='error'
+            onClick={confirmDialog.onConfirm}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Create Assignment Modal */}
-      {showModal && (
-        <Modal
-          title='New Assignment'
-          onClose={() => {
-            setShowModal(false);
-            setForm(EMPTY_FORM);
-          }}
-          maxWidth={560}
-          cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}
-        >
+      <Dialog
+        open={showModal}
+        onClose={() => {
+          setShowModal(false);
+          setForm(EMPTY_FORM);
+        }}
+        maxWidth='sm'
+        fullWidth
+      >
+        <DialogTitle>New Assignment</DialogTitle>
+        <DialogContent dividers>
           <form onSubmit={createAssignment}>
-            <div style={{ display: 'grid', gap: 16 }}>
+            <Stack spacing={2}>
               {/* Title */}
-              <div className='field-group'>
-                <label className='field-label'>
-                  Title{' '}
-                  <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
-                    (optional)
-                  </span>
-                </label>
-                <input
-                  className='field-input'
-                  type='text'
-                  value={form.title}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, title: e.target.value }))
-                  }
-                  placeholder='e.g. Auth Module — v2.5 regression'
-                />
-              </div>
+              <TextField
+                size='small'
+                fullWidth
+                label={
+                  <>
+                    Title{' '}
+                    <Typography
+                      component='span'
+                      variant='caption'
+                      color='text.disabled'
+                      fontWeight={400}
+                    >
+                      (optional)
+                    </Typography>
+                  </>
+                }
+                value={form.title}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, title: e.target.value }))
+                }
+                placeholder='e.g. Auth Module — v2.5 regression'
+              />
 
               {/* Scope: Module or Manual selection */}
-              <div className='field-group'>
-                <label className='field-label'>Scope</label>
-                <div style={{ display: 'flex', gap: 8 }}>
-                  {['module', 'selection'].map((t) => (
-                    <button
-                      key={t}
-                      type='button'
-                      onClick={() =>
-                        setForm((f) => ({
-                          ...f,
-                          type: t,
-                          moduleIds: [],
-                          testCaseIds: [],
-                        }))
-                      }
-                      style={{
-                        flex: 1,
-                        padding: '8px 12px',
-                        borderRadius: 8,
-                        border: `1.5px solid ${
-                          form.type === t ? 'var(--accent)' : 'var(--line)'
-                        }`,
-                        background:
-                          form.type === t ? 'rgba(13,148,136,0.08)' : '#fff',
-                        color: form.type === t ? 'var(--accent)' : 'var(--fg)',
-                        fontWeight: form.type === t ? 700 : 400,
-                        cursor: 'pointer',
-                        fontSize: 13,
-                      }}
-                    >
-                      {t === 'module' ? '⊞ By Module' : '◎ By Selection'}
-                    </button>
-                  ))}
-                </div>
-              </div>
+              <Box>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  fontWeight={500}
+                  sx={{ mb: 0.75, display: 'block' }}
+                >
+                  Scope
+                </Typography>
+                <ToggleButtonGroup
+                  exclusive
+                  value={form.type}
+                  onChange={(_, v) =>
+                    v &&
+                    setForm((f) => ({
+                      ...f,
+                      type: v,
+                      moduleIds: [],
+                      testCaseIds: [],
+                    }))
+                  }
+                  size='small'
+                  fullWidth
+                >
+                  <ToggleButton value='module'>⊞ By Module</ToggleButton>
+                  <ToggleButton value='selection'>◎ By Selection</ToggleButton>
+                </ToggleButtonGroup>
+              </Box>
 
               {/* Module picker */}
               {form.type === 'module' && (
-                <div className='field-group'>
-                  <label className='field-label'>Modules to assign</label>
-                  <div
-                    style={{
+                <Box>
+                  <Typography
+                    variant='caption'
+                    color='text.secondary'
+                    fontWeight={500}
+                    sx={{ mb: 0.75, display: 'block' }}
+                  >
+                    Modules to assign
+                  </Typography>
+                  <Stack
+                    spacing={0.5}
+                    sx={{
                       maxHeight: 200,
                       overflowY: 'auto',
-                      border: '1px solid var(--line)',
-                      borderRadius: 8,
-                      padding: 8,
-                      display: 'grid',
-                      gap: 4,
+                      border: 1,
+                      borderColor: 'divider',
+                      borderRadius: 2,
+                      p: 1,
                     }}
                   >
                     {modules.length === 0 ? (
-                      <div
-                        style={{
-                          color: 'var(--muted)',
-                          fontSize: 13,
-                          padding: 8,
-                        }}
+                      <Typography
+                        variant='caption'
+                        color='text.disabled'
+                        sx={{ p: 1 }}
                       >
                         No modules found
-                      </div>
+                      </Typography>
                     ) : (
                       modules.map((m) => {
                         const checked = form.moduleIds.includes(m._id);
                         const count = moduleCounts[m._id] ?? '…';
                         return (
-                          <label
+                          <Stack
                             key={m._id}
-                            style={{
-                              display: 'flex',
+                            component='label'
+                            direction='row'
+                            spacing={1}
+                            sx={{
                               alignItems: 'center',
-                              gap: 8,
-                              padding: '6px 8px',
-                              borderRadius: 6,
+                              px: 1,
+                              py: 0.75,
+                              borderRadius: 1.5,
                               cursor: 'pointer',
-                              background: checked
-                                ? 'rgba(13,148,136,0.06)'
+                              bgcolor: checked ? 'primary.50' : 'transparent',
+                              border: '1px solid',
+                              borderColor: checked
+                                ? 'primary.200'
                                 : 'transparent',
-                              border: checked
-                                ? '1px solid rgba(13,148,136,0.2)'
-                                : '1px solid transparent',
                             }}
                           >
                             <input
@@ -463,148 +495,156 @@ export default function AssignmentsClient({
                                 }))
                               }
                             />
-                            <span style={{ flex: 1, fontSize: 13 }}>
-                              <span
-                                style={{ color: 'var(--muted)', fontSize: 11 }}
+                            <Box
+                              component='span'
+                              sx={{ flex: 1, fontSize: 13 }}
+                            >
+                              <Typography
+                                component='span'
+                                variant='caption'
+                                color='text.disabled'
                               >
                                 {m.applicationName} /
-                              </span>{' '}
+                              </Typography>{' '}
                               {m.name}
-                            </span>
-                            <span
-                              style={{ fontSize: 11, color: 'var(--muted)' }}
+                            </Box>
+                            <Typography
+                              component='span'
+                              variant='caption'
+                              color='text.disabled'
                             >
                               {count} cases
-                            </span>
-                          </label>
+                            </Typography>
+                          </Stack>
                         );
                       })
                     )}
-                  </div>
-                </div>
+                  </Stack>
+                </Box>
               )}
 
               {form.type === 'selection' && (
-                <div
-                  style={{
-                    padding: '12px 14px',
-                    background: '#f8fafc',
-                    borderRadius: 8,
-                    border: '1px solid var(--line)',
-                    fontSize: 13,
-                    color: 'var(--muted)',
-                  }}
-                >
+                <Alert severity='info' variant='outlined'>
                   To assign specific test cases, select them on the{' '}
-                  <strong style={{ color: 'var(--fg)' }}>Test Cases</strong>{' '}
-                  page and click the{' '}
-                  <strong style={{ color: 'var(--accent)' }}>Assign</strong>{' '}
+                  <strong>Test Cases</strong> page and click the{' '}
+                  <Box component='strong' sx={{ color: 'primary.main' }}>
+                    Assign
+                  </Box>{' '}
                   button.
-                </div>
+                </Alert>
               )}
 
               {/* Assignee */}
-              <div className='field-group'>
-                <label className='field-label'>Assign to</label>
-                <select
-                  className='field-select'
-                  value={form.assignedTo}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, assignedTo: e.target.value }))
-                  }
-                  required
-                >
-                  <option value=''>Select team member…</option>
-                  {qaUsers.map((u) => (
-                    <option key={u} value={u}>
-                      {u}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              <TextField
+                select
+                size='small'
+                fullWidth
+                label='Assign to'
+                value={form.assignedTo}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, assignedTo: e.target.value }))
+                }
+                required
+              >
+                <MenuItem value=''>Select team member…</MenuItem>
+                {qaUsers.map((u) => (
+                  <MenuItem key={u} value={u}>
+                    {u}
+                  </MenuItem>
+                ))}
+              </TextField>
 
               {/* Priority + Due Date */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: 12,
-                }}
-              >
-                <div className='field-group'>
-                  <label className='field-label'>Priority</label>
-                  <select
-                    className='field-select'
+              <Grid container spacing={1.5}>
+                <Grid size={6}>
+                  <TextField
+                    select
+                    size='small'
+                    fullWidth
+                    label='Priority'
                     value={form.priority}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, priority: e.target.value }))
                     }
                   >
-                    <option value={PRIORITIES.HIGH}>High</option>
-                    <option value={PRIORITIES.MEDIUM}>Medium</option>
-                    <option value={PRIORITIES.LOW}>Low</option>
-                  </select>
-                </div>
-                <div className='field-group'>
-                  <label className='field-label'>
-                    Due date{' '}
-                    <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
-                      (optional)
-                    </span>
-                  </label>
-                  <input
-                    className='field-input'
+                    <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                    <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                    <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+                  </TextField>
+                </Grid>
+                <Grid size={6}>
+                  <TextField
+                    size='small'
+                    fullWidth
                     type='date'
+                    label={
+                      <>
+                        Due date{' '}
+                        <Typography
+                          component='span'
+                          variant='caption'
+                          color='text.disabled'
+                          fontWeight={400}
+                        >
+                          (optional)
+                        </Typography>
+                      </>
+                    }
+                    slotProps={{ inputLabel: { shrink: true } }}
                     value={form.dueDate}
                     onChange={(e) =>
                       setForm((f) => ({ ...f, dueDate: e.target.value }))
                     }
                   />
-                </div>
-              </div>
+                </Grid>
+              </Grid>
 
               {/* Notes */}
-              <div className='field-group'>
-                <label className='field-label'>
-                  Notes{' '}
-                  <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
-                    (optional)
-                  </span>
-                </label>
-                <textarea
-                  className='field-input'
-                  rows={3}
-                  value={form.notes}
-                  onChange={(e) =>
-                    setForm((f) => ({ ...f, notes: e.target.value }))
-                  }
-                  placeholder='Instructions, context, or special focus areas…'
-                  style={{ resize: 'vertical' }}
-                />
-              </div>
-            </div>
+              <TextField
+                size='small'
+                fullWidth
+                multiline
+                rows={3}
+                label={
+                  <>
+                    Notes{' '}
+                    <Typography
+                      component='span'
+                      variant='caption'
+                      color='text.disabled'
+                      fontWeight={400}
+                    >
+                      (optional)
+                    </Typography>
+                  </>
+                }
+                value={form.notes}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, notes: e.target.value }))
+                }
+                placeholder='Instructions, context, or special focus areas…'
+                slotProps={{ htmlInput: { style: { resize: 'vertical' } } }}
+              />
+            </Stack>
 
-            <div
-              style={{
-                display: 'flex',
-                gap: 10,
-                justifyContent: 'flex-end',
-                marginTop: 20,
-              }}
+            <Stack
+              direction='row'
+              spacing={1.25}
+              sx={{ justifyContent: 'flex-end', mt: 2.5 }}
             >
-              <button
+              <Button
                 type='button'
-                className='btn btn-secondary'
+                variant='outlined'
                 onClick={() => {
                   setShowModal(false);
                   setForm(EMPTY_FORM);
                 }}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type='submit'
-                className='btn btn-primary'
+                variant='contained'
                 disabled={
                   saving ||
                   (form.type === 'module' && !form.moduleIds.length) ||
@@ -612,12 +652,12 @@ export default function AssignmentsClient({
                 }
               >
                 {saving ? 'Creating…' : 'Create Assignment'}
-              </button>
-            </div>
+              </Button>
+            </Stack>
           </form>
-        </Modal>
-      )}
-    </div>
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 }
 
@@ -634,139 +674,147 @@ function AssignmentCard({
   onCancel,
   onViewCases,
 }) {
+  const priorityStripeColor =
+    a.priority === PRIORITIES.HIGH
+      ? 'error.main'
+      : a.priority === PRIORITIES.LOW
+        ? 'success.main'
+        : 'warning.main';
+
   return (
-    <div className='panel' style={{ padding: 0, overflow: 'hidden' }}>
+    <Paper variant='outlined' sx={{ overflow: 'hidden', p: 0 }}>
       {/* Priority stripe */}
-      <div
-        style={{
+      <Box
+        sx={{
           height: 4,
-          background:
-            a.priority === PRIORITIES.HIGH
-              ? '#dc2626'
-              : a.priority === PRIORITIES.LOW
-                ? '#16a34a'
-                : '#d97706',
+          bgcolor: priorityStripeColor,
         }}
       />
 
-      <div style={{ padding: '16px 20px' }}>
+      <Box sx={{ px: 2.5, py: 2 }}>
         {isEditing ? (
           /* Edit mode */
-          <div style={{ display: 'grid', gap: 12 }}>
-            <div className='field-group'>
-              <label className='field-label'>Title</label>
-              <input
-                className='field-input'
-                value={editForm.title || ''}
-                onChange={(e) => onEditChange({ title: e.target.value })}
-              />
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 12,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Priority</label>
-                <select
-                  className='field-select'
+          <Stack spacing={1.5}>
+            <TextField
+              size='small'
+              fullWidth
+              label='Title'
+              value={editForm.title || ''}
+              onChange={(e) => onEditChange({ title: e.target.value })}
+            />
+            <Grid container spacing={1.5}>
+              <Grid size={6}>
+                <TextField
+                  select
+                  size='small'
+                  fullWidth
+                  label='Priority'
                   value={editForm.priority || PRIORITY_DEFAULT}
                   onChange={(e) => onEditChange({ priority: e.target.value })}
                 >
-                  <option value={PRIORITIES.HIGH}>High</option>
-                  <option value={PRIORITIES.MEDIUM}>Medium</option>
-                  <option value={PRIORITIES.LOW}>Low</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Due date</label>
-                <input
-                  className='field-input'
+                  <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                  <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                  <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={6}>
+                <TextField
+                  size='small'
+                  fullWidth
                   type='date'
+                  label='Due date'
+                  slotProps={{ inputLabel: { shrink: true } }}
                   value={editForm.dueDate || ''}
                   onChange={(e) => onEditChange({ dueDate: e.target.value })}
                 />
-              </div>
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Notes</label>
-              <textarea
-                className='field-input'
-                rows={2}
-                value={editForm.notes || ''}
-                onChange={(e) => onEditChange({ notes: e.target.value })}
-                style={{ resize: 'vertical' }}
-              />
-            </div>
-            <div
-              style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}
+              </Grid>
+            </Grid>
+            <TextField
+              size='small'
+              fullWidth
+              multiline
+              rows={2}
+              label='Notes'
+              value={editForm.notes || ''}
+              onChange={(e) => onEditChange({ notes: e.target.value })}
+              slotProps={{ htmlInput: { style: { resize: 'vertical' } } }}
+            />
+            <Stack
+              direction='row'
+              spacing={1}
+              sx={{ justifyContent: 'flex-end' }}
             >
-              <button
-                className='btn btn-secondary btn-sm'
-                onClick={onCancelEdit}
-              >
+              <Button variant='outlined' size='small' onClick={onCancelEdit}>
                 Cancel
-              </button>
-              <button className='btn btn-primary btn-sm' onClick={onSaveEdit}>
+              </Button>
+              <Button variant='contained' size='small' onClick={onSaveEdit}>
                 Save
-              </button>
-            </div>
-          </div>
+              </Button>
+            </Stack>
+          </Stack>
         ) : (
           /* View mode */
           <>
-            <div
-              style={{
-                display: 'flex',
+            <Stack
+              direction='row'
+              spacing={1.5}
+              sx={{
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                gap: 12,
-                marginBottom: 12,
+                mb: 1.5,
               }}
             >
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    flexWrap: 'wrap',
-                    marginBottom: 4,
-                  }}
+              <Box sx={{ flex: 1, minWidth: 0 }}>
+                <Stack
+                  direction='row'
+                  spacing={1}
+                  sx={{ alignItems: 'center', flexWrap: 'wrap', mb: 0.5 }}
                 >
-                  <span style={{ fontWeight: 700, fontSize: 15 }}>
+                  <Typography variant='body1' fontWeight={700}>
                     {a.title}
-                  </span>
-                  <PriorityBadge priority={a.priority} />
-                </div>
-                <div
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--muted)',
-                    display: 'flex',
+                  </Typography>
+                  <Chip
+                    label={a.priority || 'Medium'}
+                    color={priorityToColor(a.priority)}
+                    size='small'
+                  />
+                </Stack>
+                <Stack
+                  direction='row'
+                  sx={{
                     flexWrap: 'wrap',
-                    gap: '4px 14px',
+                    rowGap: 0.5,
+                    columnGap: 1.75,
+                    color: 'text.disabled',
                   }}
                 >
                   {isMine && (
-                    <span>
+                    <Typography variant='caption' color='text.disabled'>
                       From:{' '}
-                      <strong style={{ color: 'var(--fg)' }}>
+                      <Typography
+                        component='strong'
+                        variant='caption'
+                        fontWeight={600}
+                        color='text.primary'
+                      >
                         {a.assignedBy}
-                      </strong>
-                    </span>
+                      </Typography>
+                    </Typography>
                   )}
                   {isSent && (
-                    <span>
+                    <Typography variant='caption' color='text.disabled'>
                       To:{' '}
-                      <strong style={{ color: 'var(--fg)' }}>
+                      <Typography
+                        component='strong'
+                        variant='caption'
+                        fontWeight={600}
+                        color='text.primary'
+                      >
                         {a.assignedTo}
-                      </strong>
-                    </span>
+                      </Typography>
+                    </Typography>
                   )}
-                  <span>
+                  <Typography variant='caption' color='text.disabled'>
                     {a.type === 'module'
                       ? `⊞ ${a.moduleIds?.length || 1} module${
                           (a.moduleIds?.length || 1) !== 1 ? 's' : ''
@@ -774,59 +822,61 @@ function AssignmentCard({
                       : '◎ Selection'}
                     · {a.testCaseCount} test case
                     {a.testCaseCount !== 1 ? 's' : ''}
-                  </span>
+                  </Typography>
                   <DueDate dueDate={a.dueDate} />
-                </div>
-              </div>
-              <div style={{ display: 'flex', gap: 6, flexShrink: 0 }}>
+                </Stack>
+              </Box>
+              <Stack direction='row' spacing={0.75} sx={{ flexShrink: 0 }}>
                 {isSent && (
-                  <button
-                    className='btn btn-secondary btn-sm'
+                  <Button
+                    variant='outlined'
+                    size='small'
                     onClick={onEdit}
                     title='Edit assignment'
                   >
                     ✎
-                  </button>
+                  </Button>
                 )}
-                <button
-                  className='btn btn-primary btn-sm'
-                  onClick={onViewCases}
-                >
+                <Button variant='contained' size='small' onClick={onViewCases}>
                   View Cases
-                </button>
+                </Button>
                 {isSent && (
-                  <button
-                    className='btn btn-danger btn-sm'
+                  <Button
+                    variant='outlined'
+                    color='error'
+                    size='small'
                     onClick={onCancel}
                     title='Cancel assignment'
-                    style={{ padding: '5px 10px' }}
+                    sx={{ minWidth: 0, px: 1.25 }}
                   >
                     ✕
-                  </button>
+                  </Button>
                 )}
-              </div>
-            </div>
+              </Stack>
+            </Stack>
 
             <ProgressBar completed={a.completedCount} total={a.testCaseCount} />
 
             {a.notes && (
-              <div
-                style={{
-                  marginTop: 10,
-                  padding: '8px 12px',
-                  background: '#f8fafc',
-                  borderRadius: 6,
-                  fontSize: 12,
-                  color: 'var(--muted)',
-                  borderLeft: '3px solid var(--line)',
+              <Box
+                sx={{
+                  mt: 1.25,
+                  px: 1.5,
+                  py: 1,
+                  bgcolor: 'background.default',
+                  borderRadius: 1.5,
+                  borderLeft: '3px solid',
+                  borderColor: 'divider',
                 }}
               >
-                {a.notes}
-              </div>
+                <Typography variant='caption' color='text.disabled'>
+                  {a.notes}
+                </Typography>
+              </Box>
             )}
           </>
         )}
-      </div>
-    </div>
+      </Box>
+    </Paper>
   );
 }

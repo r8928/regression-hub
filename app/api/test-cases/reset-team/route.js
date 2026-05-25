@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
-import { withAdmin } from '@/lib/server/withTeam';
 import { resetTeamData } from '@/lib/db/testCasesData';
-import { resetTeamBodySchema } from '@/lib/schemas/testCases';
 import { ApiError } from '@/lib/errors';
+import { resetTeamBodySchema } from '@/lib/schemas/testCases';
+import { withAdmin } from '@/lib/server/withTeam';
 
 export const POST = withAdmin(async (request, _ctx, { teamId, db }) => {
   const body = await request.json();

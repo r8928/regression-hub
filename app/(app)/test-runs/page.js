@@ -1,11 +1,20 @@
+import RefreshOutlined from '@mui/icons-material/RefreshOutlined';
+import Box from '@mui/material/Box';
+import Chip from '@mui/material/Chip';
+import Table from '@mui/material/Table';
+import TableBody from '@mui/material/TableBody';
+import TableCell from '@mui/material/TableCell';
+import TableContainer from '@mui/material/TableContainer';
+import TableHead from '@mui/material/TableHead';
+import TableRow from '@mui/material/TableRow';
+import { getServerSession } from 'next-auth';
 import DownloadPdfButton from '@/components/DownloadPdfButton';
 import EmptyState from '@/components/EmptyState';
 import PageHeader from '@/components/PageHeader';
-import ToastProvider from '@/components/Toast';
+import Panel from '@/components/Panel';
 import { authOptions } from '@/lib/auth';
 import { listTestRuns } from '@/lib/db/testRunsData';
 import { getDb } from '@/lib/mongodb';
-import { getServerSession } from 'next-auth';
 
 export default async function TestRunsPage() {
   const session = await getServerSession(authOptions);
@@ -26,8 +35,7 @@ export default async function TestRunsPage() {
   }));
 
   return (
-    <div>
-      <ToastProvider />
+    <>
       <PageHeader
         eyebrow='History'
         title='Test Runs'
@@ -35,98 +43,106 @@ export default async function TestRunsPage() {
       />
 
       {runs.length === 0 ? (
-        <EmptyState icon='⟳' title='No test runs yet'>
+        <EmptyState icon={<RefreshOutlined />} title='No test runs yet'>
           <p>Each Excel file you import will appear here as a test run.</p>
         </EmptyState>
       ) : (
-        <div className='panel'>
-          <table>
-            <thead>
-              <tr>
-                <th>File Name</th>
-                <th>Environment</th>
-                <th>Version</th>
-                <th>Imported</th>
-                <th>Refreshed</th>
-                <th>Created At</th>
-                <th>Report</th>
-              </tr>
-            </thead>
-            <tbody>
-              {runs.map((run) => (
-                <tr key={run._id}>
-                  <td style={{ fontWeight: 500 }}>{run.uploadedFileName}</td>
-                  <td>
-                    <span
-                      style={{
-                        background: 'var(--surface-3)',
-                        border: '1px solid var(--line)',
-                        borderRadius: 5,
-                        padding: '2px 8px',
-                        fontSize: 12,
-                      }}
-                    >
-                      {run.testEnvironment || '—'}
-                    </span>
-                  </td>
-                  <td>
-                    {run.softwareVersion ? (
-                      <span
-                        className='font-mono'
-                        style={{
-                          background: 'rgba(13,148,136,0.1)',
-                          border: '1px solid rgba(13,148,136,0.35)',
-                          borderRadius: 5,
-                          padding: '2px 8px',
-                          fontSize: 12,
-                          color: '#0d9488',
-                          fontWeight: 600,
-                        }}
+        <Panel title='Import History'>
+          <TableContainer>
+            <Table size='small' stickyHeader>
+              <TableHead
+                sx={{
+                  '& th': {
+                    bgcolor: 'action.selected',
+                    borderBottomWidth: 2,
+                    borderBottomColor: 'divider',
+                  },
+                }}
+              >
+                <TableRow>
+                  <TableCell>File Name</TableCell>
+                  <TableCell>Environment</TableCell>
+                  <TableCell>Version</TableCell>
+                  <TableCell>Imported</TableCell>
+                  <TableCell>Refreshed</TableCell>
+                  <TableCell>Created At</TableCell>
+                  <TableCell>Report</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {runs.map((run) => (
+                  <TableRow key={run._id} hover>
+                    <TableCell sx={{ fontWeight: 500 }}>
+                      {run.uploadedFileName}
+                    </TableCell>
+                    <TableCell>
+                      <Chip
+                        label={run.testEnvironment || '—'}
+                        size='small'
+                        variant='outlined'
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {run.softwareVersion ? (
+                        <Chip
+                          label={`v${run.softwareVersion}`}
+                          size='small'
+                          color='primary'
+                          variant='outlined'
+                          sx={{ fontFamily: 'monospace', fontWeight: 700 }}
+                        />
+                      ) : (
+                        '—'
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <Box
+                        component='span'
+                        sx={{ color: 'success.main', fontWeight: 600 }}
                       >
-                        v{run.softwareVersion}
-                      </span>
-                    ) : (
-                      '—'
-                    )}
-                  </td>
-                  <td style={{ fontWeight: 600 }}>
-                    <span style={{ color: 'var(--pass)' }}>
-                      {run.importedCount || 0}
-                    </span>
-                    {run.totalInFile ? (
-                      <span
-                        style={{
-                          color: 'var(--muted)',
-                          fontWeight: 400,
-                          fontSize: 11,
-                          marginLeft: 4,
-                        }}
-                      >
-                        / {run.totalInFile}
-                      </span>
-                    ) : null}
-                  </td>
-                  <td>
-                    {(run.updatedCount || run.duplicatesSkipped || 0) > 0 ? (
-                      <span style={{ color: '#0d9488', fontWeight: 600 }}>
-                        {run.updatedCount || run.duplicatesSkipped}
-                      </span>
-                    ) : (
-                      <span style={{ color: 'var(--muted)' }}>0</span>
-                    )}
-                  </td>
-                  <td style={{ color: 'var(--muted)', fontSize: 12 }}>
-                    {new Date(run.createdAt).toLocaleString()}
-                  </td>
-                  <td>
-                    <DownloadPdfButton run={run} />
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+                        {run.importedCount || 0}
+                      </Box>
+                      {run.totalInFile ? (
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'text.disabled',
+                            fontWeight: 400,
+                            fontSize: 11,
+                            ml: 0.5,
+                          }}
+                        >
+                          / {run.totalInFile}
+                        </Box>
+                      ) : null}
+                    </TableCell>
+                    <TableCell>
+                      {(run.updatedCount || run.duplicatesSkipped || 0) > 0 ? (
+                        <Box
+                          component='span'
+                          sx={{ color: 'primary.main', fontWeight: 600 }}
+                        >
+                          {run.updatedCount || run.duplicatesSkipped}
+                        </Box>
+                      ) : (
+                        <Box component='span' sx={{ color: 'text.disabled' }}>
+                          0
+                        </Box>
+                      )}
+                    </TableCell>
+                    <TableCell sx={{ color: 'text.disabled', fontSize: 12 }}>
+                      {new Date(run.createdAt).toLocaleString()}
+                    </TableCell>
+                    <TableCell>
+                      <DownloadPdfButton run={run} />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Panel>
       )}
-    </div>
+    </>
   );
 }

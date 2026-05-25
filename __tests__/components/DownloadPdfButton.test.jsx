@@ -37,13 +37,12 @@ describe('DownloadPdfButton', () => {
     expect(screen.getByRole('button', { name: /PDF/i })).toBeInTheDocument();
   });
 
-  it('shows "Generating…" while downloading', async () => {
+  it('disables the button while downloading (MUI loading prop)', async () => {
     exportData.mockImplementation(() => new Promise(() => {}));
     render(<DownloadPdfButton run={mockRun} />);
     fireEvent.click(screen.getByRole('button'));
-    await waitFor(() =>
-      expect(screen.getByRole('button')).toHaveTextContent('Generating…'),
-    );
+    // MUI <Button loading> sets aria-disabled and disabled on the root element
+    await waitFor(() => expect(screen.getByRole('button')).toBeDisabled());
   });
 
   it('calls showToast with info when no cases returned', async () => {
@@ -93,6 +92,7 @@ describe('DownloadPdfButton', () => {
       cases: expect.any(Array),
     });
     expect(save).toHaveBeenCalled();
-    expect(screen.getByRole('button')).toHaveTextContent('⬇ PDF');
+    // MUI Button label is static "PDF" (Unicode arrow replaced by DownloadIcon)
+    expect(screen.getByRole('button', { name: /PDF/i })).toBeInTheDocument();
   });
 });

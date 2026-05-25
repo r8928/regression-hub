@@ -1,6 +1,6 @@
+import { NextResponse } from 'next/server';
 import { createAssignment, listAssignments } from '@/lib/db/assignmentsData';
 import { withTeam } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const GET = withTeam(async (request, _ctx, { teamId, db, session }) => {
   const view = new URL(request.url).searchParams.get('view') || 'mine';

@@ -1,9 +1,9 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  normalizedStatus,
   dateStamp,
-  toDateInputValue,
+  normalizedStatus,
   normalizeText,
+  toDateInputValue,
 } from '../formatters';
 
 describe('normalizedStatus', () => {

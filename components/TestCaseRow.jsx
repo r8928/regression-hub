@@ -1,17 +1,32 @@
 'use client';
 
-import { priorityBadgeStyle } from '@/components/PriorityBadge';
+import EditIcon from '@mui/icons-material/Edit';
+import {
+  Checkbox,
+  IconButton,
+  MenuItem,
+  Select,
+  TableCell,
+  TableRow,
+  TextField,
+} from '@mui/material';
+import { useEffect, useState } from 'react';
 import RichTextDisplay from '@/components/RichTextDisplay';
 import { PRIORITIES, STATUS } from '@/lib/constants';
 import { normalizedStatus, toDateInputValue } from '@/utils/formatters';
-import { useEffect, useState } from 'react';
 
-function statusClass(status) {
-  if (status === STATUS.PASS) return 'pass';
-  if (status === STATUS.FAIL) return 'fail';
-  return 'pending';
-}
+const STATUS_COLOR = {
+  [STATUS.PASS]: 'success.main',
+  [STATUS.FAIL]: 'error.main',
+  [STATUS.PENDING]: 'warning.main',
+};
 
+const INPUT_FONT = { fontSize: 'inherit', fontFamily: 'inherit' };
+
+/**
+ * Inline-editable test case table row.
+ * @see {@link components/__tests__/TestCaseRow.test.jsx}
+ */
 export default function TestCaseRow({
   tc,
   rowNum,
@@ -33,57 +48,64 @@ export default function TestCaseRow({
   }
 
   const st = normalizedStatus(local.status);
-  const pStyle = priorityBadgeStyle(local.priority);
 
   return (
-    <tr
-      style={{
-        opacity: saving ? 0.7 : 1,
-        transition: 'opacity 200ms',
-        background: selected
-          ? 'color-mix(in srgb, var(--accent) 8%, transparent)'
-          : undefined,
-      }}
+    <TableRow
+      selected={selected}
+      sx={{ opacity: saving ? 0.7 : 1, transition: 'opacity 200ms' }}
     >
-      <td style={{ width: 36, textAlign: 'center', padding: '4px 6px' }}>
-        <input type='checkbox' checked={selected} onChange={onToggle} />
-      </td>
-      <td
-        style={{
+      {/* Checkbox */}
+      <TableCell sx={{ width: 36, textAlign: 'center', p: '4px 6px' }}>
+        <Checkbox checked={selected} onChange={onToggle} size='small' />
+      </TableCell>
+
+      {/* Row number */}
+      <TableCell
+        sx={{
           width: 40,
           textAlign: 'center',
-          color: 'var(--muted)',
-          fontSize: 12,
+          color: 'text.disabled',
           userSelect: 'none',
         }}
       >
         {rowNum}
-      </td>
-      <td style={{ color: 'var(--ink-2)', minWidth: 110 }}>
+      </TableCell>
+
+      {/* Application name */}
+      <TableCell sx={{ color: 'text.secondary', minWidth: 110 }}>
         {tc.applicationName}
-      </td>
-      <td style={{ minWidth: 110 }}>{tc.moduleName}</td>
-      <td style={{ minWidth: 90 }}>
-        <select
-          className='table-select'
+      </TableCell>
+
+      {/* Module name */}
+      <TableCell sx={{ minWidth: 110 }}>{tc.moduleName}</TableCell>
+
+      {/* Priority */}
+      <TableCell sx={{ minWidth: 90 }}>
+        <Select
+          variant='standard'
+          size='small'
           value={local.priority || ''}
           onChange={(e) => handleChange('priority', e.target.value)}
-          style={{
-            minWidth: 85,
-            ...pStyle,
-          }}
+          sx={{ minWidth: 85, ...INPUT_FONT }}
+          inputProps={{ 'data-testid': 'priority-select' }}
         >
-          <option value=''>—</option>
-          <option value={PRIORITIES.HIGH}>High</option>
-          <option value={PRIORITIES.MEDIUM}>Medium</option>
-          <option value={PRIORITIES.LOW}>Low</option>
-        </select>
-      </td>
-      <td>{tc.type}</td>
-      <td style={{ minWidth: 110 }}>
-        <input
-          className='table-input'
-          style={{ minWidth: 100 }}
+          <MenuItem value=''>—</MenuItem>
+          <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+          <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+          <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+        </Select>
+      </TableCell>
+
+      {/* Type */}
+      <TableCell>{tc.type}</TableCell>
+
+      {/* Jira story */}
+      <TableCell sx={{ minWidth: 110 }}>
+        <TextField
+          variant='standard'
+          size='small'
+          sx={{ minWidth: 100 }}
+          slotProps={{ input: { sx: INPUT_FONT } }}
           value={local.jiraStory || ''}
           onChange={(e) =>
             setLocal((prev) => ({ ...prev, jiraStory: e.target.value }))
@@ -94,32 +116,42 @@ export default function TestCaseRow({
           }}
           placeholder='JIRA-…'
         />
-      </td>
-      <td className='font-mono' style={{ fontSize: 12 }}>
-        {tc.traceability}
-      </td>
-      <td className='font-mono' style={{ fontSize: 12, whiteSpace: 'nowrap' }}>
-        {tc.testCaseId}
-      </td>
-      <td style={{ minWidth: 180, maxWidth: 220, fontSize: 12 }}>
-        {tc.testCase}
-      </td>
-      <td style={{ minWidth: 160, maxWidth: 220 }}>
+      </TableCell>
+
+      {/* Traceability */}
+      <TableCell>{tc.traceability}</TableCell>
+
+      {/* Test case ID */}
+      <TableCell sx={{ whiteSpace: 'nowrap' }}>{tc.testCaseId}</TableCell>
+
+      {/* Test case description */}
+      <TableCell sx={{ minWidth: 180, maxWidth: 220 }}>{tc.testCase}</TableCell>
+
+      {/* Preconditions */}
+      <TableCell sx={{ minWidth: 160, maxWidth: 220 }}>
         <RichTextDisplay
           value={tc.preconditions}
-          style={{ color: 'var(--muted)' }}
+          style={{ color: 'text.disabled' }}
         />
-      </td>
-      <td style={{ minWidth: 160, maxWidth: 240 }}>
+      </TableCell>
+
+      {/* Steps */}
+      <TableCell sx={{ minWidth: 160, maxWidth: 240 }}>
         <RichTextDisplay value={tc.steps} />
-      </td>
-      <td style={{ minWidth: 180, maxWidth: 240 }}>
+      </TableCell>
+
+      {/* Expected result */}
+      <TableCell sx={{ minWidth: 180, maxWidth: 240 }}>
         <RichTextDisplay value={tc.expectedResult} />
-      </td>
-      <td>
-        <input
-          className='table-input'
-          style={{ minWidth: 140 }}
+      </TableCell>
+
+      {/* Actual result */}
+      <TableCell>
+        <TextField
+          variant='standard'
+          size='small'
+          sx={{ minWidth: 140 }}
+          slotProps={{ input: { sx: INPUT_FONT } }}
           value={local.actualResult || ''}
           onChange={(e) =>
             setLocal((prev) => ({ ...prev, actualResult: e.target.value }))
@@ -129,23 +161,31 @@ export default function TestCaseRow({
               handleChange('actualResult', e.target.value);
           }}
         />
-      </td>
-      <td>
-        <select
-          className={`table-select ${statusClass(st)}`}
+      </TableCell>
+
+      {/* Status */}
+      <TableCell>
+        <Select
+          variant='standard'
+          size='small'
           value={local.status || ''}
           onChange={(e) => handleChange('status', e.target.value)}
-          style={{ minWidth: 85 }}
+          sx={{ minWidth: 85, color: STATUS_COLOR[st], ...INPUT_FONT }}
+          inputProps={{ 'data-testid': 'status-select' }}
         >
-          <option value=''>Pending</option>
-          <option value={STATUS.PASS}>Pass</option>
-          <option value={STATUS.FAIL}>Fail</option>
-        </select>
-      </td>
-      <td>
-        <input
-          className='table-input'
-          style={{ minWidth: 140 }}
+          <MenuItem value=''>Pending</MenuItem>
+          <MenuItem value={STATUS.PASS}>Pass</MenuItem>
+          <MenuItem value={STATUS.FAIL}>Fail</MenuItem>
+        </Select>
+      </TableCell>
+
+      {/* Defects / improvements */}
+      <TableCell>
+        <TextField
+          variant='standard'
+          size='small'
+          sx={{ minWidth: 140 }}
+          slotProps={{ input: { sx: INPUT_FONT } }}
           value={local.defectsImprovements || ''}
           onChange={(e) =>
             setLocal((prev) => ({
@@ -158,35 +198,46 @@ export default function TestCaseRow({
               handleChange('defectsImprovements', e.target.value);
           }}
         />
-      </td>
-      <td>
-        <select
-          className='table-select'
+      </TableCell>
+
+      {/* Tested by */}
+      <TableCell>
+        <Select
+          variant='standard'
+          size='small'
           value={local.testedBy || ''}
           onChange={(e) => handleChange('testedBy', e.target.value)}
-          style={{ minWidth: 100 }}
+          sx={{ minWidth: 100, ...INPUT_FONT }}
         >
-          <option value=''>—</option>
+          <MenuItem value=''>—</MenuItem>
           {qaUsers.map((u) => (
-            <option key={u} value={u}>
+            <MenuItem key={u} value={u}>
               {u}
-            </option>
+            </MenuItem>
           ))}
-        </select>
-      </td>
-      <td>
-        <input
-          className='table-date'
+        </Select>
+      </TableCell>
+
+      {/* Tested on */}
+      <TableCell>
+        <TextField
+          variant='standard'
+          size='small'
           type='date'
           value={toDateInputValue(local.testedOn)}
           onChange={(e) => handleChange('testedOn', e.target.value)}
-          style={{ minWidth: 130 }}
+          sx={{ minWidth: 130 }}
+          slotProps={{ input: { sx: INPUT_FONT } }}
         />
-      </td>
-      <td>
-        <input
-          className='table-input'
-          style={{ minWidth: 100 }}
+      </TableCell>
+
+      {/* Software version tested */}
+      <TableCell>
+        <TextField
+          variant='standard'
+          size='small'
+          sx={{ minWidth: 100 }}
+          slotProps={{ input: { sx: INPUT_FONT } }}
           value={local.softwareVersionTested || ''}
           onChange={(e) =>
             setLocal((prev) => ({
@@ -199,25 +250,18 @@ export default function TestCaseRow({
               handleChange('softwareVersionTested', e.target.value);
           }}
         />
-      </td>
-      <td style={{ textAlign: 'center', padding: '4px 8px' }}>
-        <button
+      </TableCell>
+
+      {/* Edit button */}
+      <TableCell sx={{ textAlign: 'center', p: '4px 8px' }}>
+        <IconButton
+          size='small'
           onClick={() => onEdit(tc)}
-          title='Edit test case'
-          style={{
-            background: 'none',
-            border: '1px solid var(--line)',
-            borderRadius: 6,
-            cursor: 'pointer',
-            padding: '3px 8px',
-            fontSize: 13,
-            color: 'var(--muted)',
-            lineHeight: 1,
-          }}
+          aria-label='Edit test case'
         >
-          ✎
-        </button>
-      </td>
-    </tr>
+          <EditIcon fontSize='small' />
+        </IconButton>
+      </TableCell>
+    </TableRow>
   );
 }

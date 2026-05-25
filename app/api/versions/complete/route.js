@@ -1,7 +1,7 @@
+import { NextResponse } from 'next/server';
 import { completeVersion } from '@/lib/db/versionsData';
 import { ApiError } from '@/lib/errors';
 import { withAdmin } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const POST = withAdmin(async (request, _ctx, { teamId, db }) => {
   const { version } = await request.json();

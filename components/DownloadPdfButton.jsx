@@ -1,10 +1,12 @@
 'use client';
 
+import DownloadIcon from '@mui/icons-material/Download';
+import Button from '@mui/material/Button';
+import { useState } from 'react';
 import { showToast } from '@/components/Toast';
 import { exportData } from '@/lib/api/exportData';
 import { dateStamp } from '@/utils/formatters';
 import { generateTestRunReport } from '@/utils/pdf/generateTestRunReport';
-import { useState } from 'react';
 
 /**
  * @see {@link __tests__/components/DownloadPdfButton.test.jsx}
@@ -33,13 +35,16 @@ export default function DownloadPdfButton({ run }) {
   }
 
   return (
-    <button
-      className='btn btn-secondary btn-sm'
+    <Button
+      variant='outlined'
+      size='small'
+      loading={downloading}
+      loadingPosition='start'
+      startIcon={<DownloadIcon />}
       onClick={handleClick}
-      disabled={downloading}
-      style={{ whiteSpace: 'nowrap' }}
+      sx={{ whiteSpace: 'nowrap' }}
     >
-      {downloading ? 'Generating…' : '⬇ PDF'}
-    </button>
+      PDF
+    </Button>
   );
 }

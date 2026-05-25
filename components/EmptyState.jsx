@@ -1,16 +1,26 @@
-export default function EmptyState({ icon, title, children, style }) {
-  if (!icon && !title) {
-    return (
-      <div className='empty-state' style={style}>
-        {children}
-      </div>
-    );
-  }
+import Box from '@mui/material/Box';
+import Typography from '@mui/material/Typography';
+
+/**
+ * Empty-state placeholder with optional icon, title, and body content.
+ *
+ * @see {@link components/__tests__/EmptyState.test.jsx}
+ *
+ * @param {object} props
+ * @param {React.ReactElement} [props.icon] - MUI icon element (e.g. <InfoOutlined />)
+ * @param {string} [props.title] - Heading text rendered with emptyStateTitle variant
+ * @param {React.ReactNode} [props.children] - Body content below the title
+ */
+export default function EmptyState({ icon, title, children }) {
   return (
-    <div className='empty-state' style={style}>
-      {icon && <div style={{ fontSize: 32, marginBottom: 8 }}>{icon}</div>}
-      {title && <strong>{title}</strong>}
+    <Box sx={{ py: 5, textAlign: 'center' }}>
+      {icon && <Box sx={{ mb: 1 }}>{icon}</Box>}
+      {title && (
+        <Typography variant='emptyStateTitle' color='text.disabled'>
+          {title}
+        </Typography>
+      )}
       {children}
-    </div>
+    </Box>
   );
 }

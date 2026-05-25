@@ -1,5 +1,5 @@
-import { createMockDb } from '@/lib/__tests__/helpers/mockDb';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
+import { createMockDb } from '@/lib/__tests__/helpers/mockDb';
 
 const { db, reset } = createMockDb();
 const { getUsers, createUser, checkRateLimit } = vi.hoisted(() => ({

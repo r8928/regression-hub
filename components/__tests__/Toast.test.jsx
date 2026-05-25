@@ -1,73 +1,60 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
-import { render, screen, act } from '@testing-library/react';
-import ToastProvider, { showToast } from '../Toast';
+import { render, screen } from '@testing-library/react';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-describe('ToastProvider', () => {
+vi.mock('@/app/ThemeRegistry', () => ({
+  getEnqueueSnackbar: vi.fn(),
+}));
+
+import { getEnqueueSnackbar } from '@/app/ThemeRegistry';
+import { showToast, ToastProvider } from '../Toast';
+
+describe('showToast (shim contract via components/Toast)', () => {
+  let enqueue;
+
   beforeEach(() => {
-    vi.useFakeTimers();
+    enqueue = vi.fn();
+    getEnqueueSnackbar.mockReturnValue(enqueue);
   });
 
-  afterEach(() => {
-    vi.useRealTimers();
+  it('enqueues with variant error for type "error"', () => {
+    showToast('msg', 'error');
+    expect(enqueue).toHaveBeenCalledWith('msg', { variant: 'error' });
   });
 
-  it('renders nothing when there are no toasts', () => {
-    const { container } = render(<ToastProvider />);
-    expect(container.firstChild).toBeNull();
+  it('enqueues with variant success for type "success"', () => {
+    showToast('msg', 'success');
+    expect(enqueue).toHaveBeenCalledWith('msg', { variant: 'success' });
   });
 
-  it('displays a toast message after showToast is called', () => {
-    render(<ToastProvider />);
-    act(() => {
-      showToast('Saved successfully');
-    });
-    expect(screen.getByText('Saved successfully')).toBeInTheDocument();
+  it('enqueues with variant info for type "info"', () => {
+    showToast('msg', 'info');
+    expect(enqueue).toHaveBeenCalledWith('msg', { variant: 'info' });
   });
 
-  it('shows success icon for success type', () => {
-    render(<ToastProvider />);
-    act(() => {
-      showToast('Done', 'success');
-    });
-    expect(screen.getByText('✓')).toBeInTheDocument();
+  it('falls back to variant info for an unknown type', () => {
+    showToast('msg', 'critical');
+    expect(enqueue).toHaveBeenCalledWith('msg', { variant: 'info' });
   });
 
-  it('shows error icon for error type', () => {
-    render(<ToastProvider />);
-    act(() => {
-      showToast('Failed', 'error');
-    });
-    expect(screen.getByText('✕')).toBeInTheDocument();
+  it('enqueues with variant warning for type "warning"', () => {
+    showToast('msg', 'warning');
+    expect(enqueue).toHaveBeenCalledWith('msg', { variant: 'warning' });
   });
 
-  it('shows info icon for info type', () => {
-    render(<ToastProvider />);
-    act(() => {
-      showToast('Note', 'info');
-    });
-    expect(screen.getByText('ℹ')).toBeInTheDocument();
+  it('does not throw and silently no-ops when bridge is not mounted', () => {
+    getEnqueueSnackbar.mockReturnValue(null);
+    expect(() => showToast('msg', 'error')).not.toThrow();
+    expect(enqueue).not.toHaveBeenCalled();
+  });
+});
+
+describe('ToastProvider (no-op shim)', () => {
+  it('renders children passed to it', () => {
+    render(<ToastProvider>hello</ToastProvider>);
+    expect(screen.getByText('hello')).toBeDefined();
   });
 
-  it('removes the toast after the duration elapses', () => {
-    render(<ToastProvider />);
-    act(() => {
-      showToast('Temporary', 'success', 1000);
-    });
-    expect(screen.getByText('Temporary')).toBeInTheDocument();
-
-    act(() => {
-      vi.advanceTimersByTime(1000 + 220 + 50);
-    });
-    expect(screen.queryByText('Temporary')).toBeNull();
-  });
-
-  it('shows multiple toasts simultaneously', () => {
-    render(<ToastProvider />);
-    act(() => {
-      showToast('First');
-      showToast('Second');
-    });
-    expect(screen.getByText('First')).toBeInTheDocument();
-    expect(screen.getByText('Second')).toBeInTheDocument();
+  it('renders with no children without throwing', () => {
+    expect(() => render(<ToastProvider />)).not.toThrow();
   });
 });

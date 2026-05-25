@@ -1,53 +1,15 @@
 'use client';
+// Backward-compat re-export. Replaced by notistack in Phase 3.
+// TODO: follow-up ticket will sweep call sites to useSnackbar() directly.
+export { showToast } from '@/utils/showToast';
 
-import { useState, useCallback, useEffect } from 'react';
-
-let toastListeners = [];
-
-/** @see {@link __tests__/Toast.test.jsx} */
-export function showToast(message, type = 'success', duration = 3000) {
-  const id = Date.now() + Math.random();
-  toastListeners.forEach((fn) => fn({ id, message, type, duration }));
+/**
+ * No-op shim so existing default-import callers (`import ToastProvider from '@/components/Toast'`)
+ * continue to compile without modification. Notistack's SnackbarProvider is mounted in
+ * ThemeRegistry, so this wrapper is no longer needed.
+ */
+export function ToastProvider({ children }) {
+  return <>{children}</>;
 }
 
-/** @see {@link __tests__/Toast.test.jsx} */
-export default function ToastProvider() {
-  const [toasts, setToasts] = useState([]);
-
-  useEffect(() => {
-    const handler = (toast) => {
-      setToasts((prev) => [...prev, toast]);
-      setTimeout(() => {
-        setToasts((prev) =>
-          prev.map((t) => (t.id === toast.id ? { ...t, leaving: true } : t)),
-        );
-        setTimeout(
-          () => setToasts((prev) => prev.filter((t) => t.id !== toast.id)),
-          220,
-        );
-      }, toast.duration);
-    };
-    toastListeners.push(handler);
-    return () => {
-      toastListeners = toastListeners.filter((fn) => fn !== handler);
-    };
-  }, []);
-
-  if (!toasts.length) return null;
-
-  const icons = { success: '✓', error: '✕', info: 'ℹ' };
-
-  return (
-    <div className='toast-container'>
-      {toasts.map((t) => (
-        <div
-          key={t.id}
-          className={`toast ${t.type} ${t.leaving ? 'leaving' : ''}`}
-        >
-          <span style={{ fontWeight: 700 }}>{icons[t.type] || '•'}</span>
-          <span>{t.message}</span>
-        </div>
-      ))}
-    </div>
-  );
-}
+export default ToastProvider;

@@ -1,8 +1,8 @@
+import { NextResponse } from 'next/server';
 import { createModule, listModules } from '@/lib/db/modulesData';
 import { ApiError } from '@/lib/errors';
 import { createModuleBodySchema } from '@/lib/schemas/modules';
 import { withTeam } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const GET = withTeam(async (request, _ctx, { teamId, db }) => {
   const applicationId =

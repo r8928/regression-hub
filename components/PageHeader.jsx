@@ -1,32 +1,39 @@
-export default function PageHeader({ eyebrow, title, sub, subStyle, actions }) {
+import Stack from '@mui/material/Stack';
+import Typography from '@mui/material/Typography';
+
+/**
+ * Page-level header with optional eyebrow, title, sub-text, and actions slot.
+ *
+ * @see {@link __tests__/PageHeader.test.jsx}
+ */
+export default function PageHeader({ eyebrow, title, sub, actions }) {
   const header = (
-    <div
-      className='page-header'
-      style={actions ? { marginBottom: 0 } : undefined}
-    >
-      {eyebrow && <div className='page-eyebrow'>{eyebrow}</div>}
-      <h1 className='page-title'>{title}</h1>
+    <Stack spacing={0.5} sx={{ mb: actions ? 0 : 3 }}>
+      {eyebrow && <Typography variant='pageEyebrow'>{eyebrow}</Typography>}
+      <Typography variant='pageTitle'>{title}</Typography>
       {sub && (
-        <p className='page-sub' style={subStyle}>
+        <Typography variant='pageSub' component='div'>
           {sub}
-        </p>
+        </Typography>
       )}
-    </div>
+    </Stack>
   );
+
   if (!actions) return header;
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'flex-start',
+    <Stack
+      direction='row'
+      spacing={1.5}
+      sx={{
         justifyContent: 'space-between',
-        marginBottom: 24,
+        alignItems: 'flex-start',
         flexWrap: 'wrap',
-        gap: 12,
+        mb: 3,
       }}
     >
       {header}
       {actions}
-    </div>
+    </Stack>
   );
 }

@@ -1,8 +1,15 @@
 'use client';
 
+import CloudUploadIcon from '@mui/icons-material/CloudUpload';
+import Alert from '@mui/material/Alert';
+import Grid from '@mui/material/Grid';
+import LinearProgress from '@mui/material/LinearProgress';
+import Paper from '@mui/material/Paper';
+import TextField from '@mui/material/TextField';
+import Typography from '@mui/material/Typography';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { importExcel } from '@/lib/api/importExcel';
 import { getSettings, putSettings } from '@/lib/api/settings';
-import { useCallback, useEffect, useRef, useState } from 'react';
 
 /** @see {@link __tests__/UploadExcel.test.jsx} */
 export default function UploadExcel({ onImported }) {
@@ -14,7 +21,6 @@ export default function UploadExcel({ onImported }) {
   const fileRef = useRef();
   const saveTimer = useRef(null);
 
-  // Load saved settings from server on mount
   useEffect(() => {
     getSettings({ silentFailure: true }).then((s) => {
       if (!s) return;
@@ -23,7 +29,6 @@ export default function UploadExcel({ onImported }) {
     });
   }, []);
 
-  // Debounced save to server — fires 600ms after last keystroke
   const saveSettings = useCallback((testEnvironment, softwareVersion) => {
     clearTimeout(saveTimer.current);
     saveTimer.current = setTimeout(() => {
@@ -72,9 +77,10 @@ export default function UploadExcel({ onImported }) {
   }
 
   return (
-    <div>
-      <div
-        className={`upload-zone ${dragging ? 'drag-over' : ''}`}
+    <Paper variant='outlined' sx={{ p: 2 }}>
+      <Paper
+        data-testid='upload-dropzone'
+        variant='outlined'
         onClick={() => fileRef.current?.click()}
         onDragOver={(e) => {
           e.preventDefault();
@@ -86,63 +92,87 @@ export default function UploadExcel({ onImported }) {
           setDragging(false);
           processFile(e.dataTransfer.files[0]);
         }}
+        sx={{
+          border: '2px dashed',
+          borderColor: dragging ? 'primary.main' : 'divider',
+          borderRadius: 2,
+          p: 3,
+          textAlign: 'center',
+          cursor: 'pointer',
+          transition: 'border-color 0.2s, background-color 0.2s',
+          bgcolor: dragging ? 'action.hover' : 'background.paper',
+          '&:hover': {
+            borderColor: 'primary.light',
+            bgcolor: 'action.hover',
+          },
+          position: 'relative',
+          overflow: 'hidden',
+        }}
       >
         <input
           ref={fileRef}
           type='file'
           accept='.xlsx'
+          hidden
           onChange={(e) => {
             processFile(e.target.files[0]);
             e.target.value = '';
           }}
         />
-        <div style={{ fontSize: 28, marginBottom: 8, color: 'var(--accent)' }}>
-          ⊞
-        </div>
-        <div style={{ fontWeight: 600, fontSize: 14, color: 'var(--ink)' }}>
-          {loading ? 'Importing…' : 'Drop .xlsx file or click to upload'}
-        </div>
-        <div style={{ fontSize: 12, color: 'var(--muted)', marginTop: 4 }}>
-          Auto-detects headers · Imports all sheets
-        </div>
-      </div>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: '1fr 1fr',
-          gap: 10,
-          marginTop: 10,
-        }}
-      >
-        <div className='field-group'>
-          <label className='field-label'>Test Environment</label>
-          <input
-            className='field-input'
+        <CloudUploadIcon sx={{ fontSize: 36, color: 'primary.main', mb: 1 }} />
+
+        <Typography variant='subtitle2' fontWeight={600}>
+          Drop .xlsx file or click to upload
+        </Typography>
+
+        <Typography
+          variant='caption'
+          color='text.secondary'
+          display='block'
+          sx={{ mt: 0.5 }}
+        >
+          Auto-detects headers · Imports all sheets
+        </Typography>
+
+        {loading && (
+          <LinearProgress
+            sx={{ position: 'absolute', bottom: 0, left: 0, right: 0 }}
+          />
+        )}
+      </Paper>
+
+      <Grid container spacing={1.25} sx={{ mt: 1.25 }}>
+        <Grid size={6}>
+          <TextField
+            size='small'
+            fullWidth
+            label='Test Environment'
             value={env}
             onChange={handleEnvChange}
             placeholder='e.g. QA, Staging, Production'
           />
-        </div>
-        <div className='field-group'>
-          <label className='field-label'>Software Version</label>
-          <input
-            className='field-input'
+        </Grid>
+        <Grid size={6}>
+          <TextField
+            size='small'
+            fullWidth
+            label='Software Version'
             value={version}
             onChange={handleVersionChange}
             placeholder='e.g. 2.4.1'
           />
-        </div>
-      </div>
+        </Grid>
+      </Grid>
 
       {status && (
-        <div
-          className={`status-bar ${status.type}`}
-          style={{ marginTop: 10, marginBottom: 0 }}
+        <Alert
+          severity={status.type === 'info' ? 'info' : status.type}
+          sx={{ mt: 1.25, mb: 0 }}
         >
           {status.message}
-        </div>
+        </Alert>
       )}
-    </div>
+    </Paper>
   );
 }

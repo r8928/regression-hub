@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import { describe, expect, it } from 'vitest';
 import MetricCards from '../MetricCards';
 
 const CARDS = [
@@ -17,10 +17,10 @@ describe('MetricCards', () => {
     expect(screen.getByText('30')).toBeInTheDocument();
   });
 
-  it('renders — for every value when loading is true', () => {
+  it('renders a Skeleton for every value when loading is true', () => {
     render(<MetricCards cards={CARDS} loading />);
-    const dashes = screen.getAllByText('—');
-    expect(dashes).toHaveLength(CARDS.length);
+    const skeletons = screen.getAllByTestId('metric-skeleton');
+    expect(skeletons).toHaveLength(CARDS.length);
   });
 
   it('renders a metric-sub element when sub is provided', () => {
@@ -29,10 +29,9 @@ describe('MetricCards', () => {
     expect(screen.getByText('All imported')).toBeInTheDocument();
   });
 
-  it('applies cls as extra className on the card element', () => {
-    const { container } = render(
-      <MetricCards cards={[{ label: 'x', value: 1, cls: 'pass' }]} />,
-    );
-    expect(container.querySelector('.metric-card.pass')).toBeTruthy();
+  it('renders correct number of cards', () => {
+    render(<MetricCards cards={CARDS} />);
+    const cardEls = screen.getAllByTestId('metric-card');
+    expect(cardEls).toHaveLength(CARDS.length);
   });
 });

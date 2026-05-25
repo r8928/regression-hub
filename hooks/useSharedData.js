@@ -1,8 +1,8 @@
 'use client';
 
+import { useQuery } from '@tanstack/react-query';
 import { listModules } from '@/lib/api/modules';
 import { getSettings } from '@/lib/api/settings';
-import { useQuery } from '@tanstack/react-query';
 
 export function useSettings() {
   return useQuery({

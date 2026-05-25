@@ -1,7 +1,33 @@
 'use client';
 
+import SearchOffOutlined from '@mui/icons-material/SearchOffOutlined';
+import {
+  Box,
+  Button,
+  Chip,
+  Dialog,
+  TablePagination,
+  DialogActions,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  MenuItem,
+  Paper,
+  Skeleton,
+  Stack,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  TextField,
+  Typography,
+} from '@mui/material';
+import { useSearchParams } from 'next/navigation';
+import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import EmptyState from '@/components/EmptyState';
-import Modal from '@/components/Modal';
 import PageHeader from '@/components/PageHeader';
 import RichTextEditor from '@/components/RichTextEditor';
 import TestCaseRow from '@/components/TestCaseRow';
@@ -26,8 +52,6 @@ import {
   UNASSIGNED_SENTINEL,
 } from '@/lib/constants';
 import { dateStamp, toDateInputValue } from '@/utils/formatters';
-import { useSearchParams } from 'next/navigation';
-import { Suspense, useCallback, useEffect, useRef, useState } from 'react';
 
 const EMPTY_FORM = {
   applicationId: '',
@@ -49,7 +73,7 @@ const EMPTY_FORM = {
   jiraStory: '',
 };
 
-const PAGE_SIZE = 50;
+const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 function TestCasesPage({ user }) {
   const isAdmin = user.role === ROLES.ADMIN;
@@ -96,6 +120,19 @@ function TestCasesPage({ user }) {
 
   const qaUsers = useQaUsers();
 
+  // Confirmation dialog
+  const [confirmDialog, setConfirmDialog] = useState({
+    open: false,
+    message: '',
+    onConfirm: null,
+  });
+  // Prompt dialog (text input)
+  const [promptDialog, setPromptDialog] = useState({
+    open: false,
+    value: '',
+    onConfirm: null,
+  });
+
   // Bulk fill
   const [bStatus, setBStatus] = useState('');
   const [bFromTester, setBFromTester] = useState('');
@@ -117,15 +154,23 @@ function TestCasesPage({ user }) {
 
   // Pagination
   const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
 
   const versionSaveTimer = useRef(null);
   const settingsVersionRef = useRef('');
   const appsModsLoaded = useRef(false);
+  const newModuleInputRef = useRef(null);
 
   const searchParams = useSearchParams();
   useEffect(() => {
     const assignedTo = searchParams.get('assignedTo');
     if (assignedTo) setFAssignedTo(assignedTo);
+    const applicationId = searchParams.get('applicationId');
+    if (applicationId) setFApp(applicationId);
+    const status = searchParams.get('status');
+    if (status) setFStatus(status);
+    const testedBy = searchParams.get('testedBy');
+    if (testedBy) setFTester(testedBy);
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Load settings — apps/modules come from the test-cases response
@@ -158,7 +203,7 @@ function TestCasesPage({ user }) {
         if (fPriority) params.set('priority', fPriority);
         if (fJiraStory) params.set('jiraStory', fJiraStory);
         params.set('page', pageNum);
-        params.set('limit', PAGE_SIZE);
+        params.set('limit', pageSize);
 
         const json = await listTestCases(Object.fromEntries(params), {
           silentFailure: true,
@@ -200,6 +245,7 @@ function TestCasesPage({ user }) {
       fAssignedTo,
       fPriority,
       fJiraStory,
+      pageSize,
     ],
   );
 
@@ -474,36 +520,41 @@ function TestCasesPage({ user }) {
     }
   }
 
-  async function clearAll() {
-    if (
-      !confirm(
+  function clearAll() {
+    setConfirmDialog({
+      open: true,
+      message:
         'Delete ALL test cases, applications, modules, and test runs from the database?',
-      )
-    )
-      return;
-    const typed = window.prompt(
-      'Type RESET to confirm permanent deletion of all team data:',
-    );
-    if (typed !== CONFIRM_TOKENS.RESET) {
-      if (typed != null)
-        showToast('Reset cancelled — type RESET exactly', 'info');
-      return;
-    }
-    await Promise.all([
-      resetTeamTestCases({ confirm: CONFIRM_TOKENS.RESET }),
-      putSettings(
-        { testEnvironment: '', softwareVersion: '' },
-        { silentFailure: true },
-      ),
-    ]);
-    setCases([]);
-    setTotalCount(0);
-    setApplications([]);
-    setModules([]);
-    setBVersion('');
-    settingsVersionRef.current = '';
-    appsModsLoaded.current = false;
-    showToast('All data cleared', 'info');
+      onConfirm: () => {
+        setConfirmDialog((prev) => ({ ...prev, open: false }));
+        setPromptDialog({
+          open: true,
+          value: '',
+          onConfirm: async (typed) => {
+            setPromptDialog((prev) => ({ ...prev, open: false }));
+            if (typed !== CONFIRM_TOKENS.RESET) {
+              showToast('Reset cancelled — type RESET exactly', 'info');
+              return;
+            }
+            await Promise.all([
+              resetTeamTestCases({ confirm: CONFIRM_TOKENS.RESET }),
+              putSettings(
+                { testEnvironment: '', softwareVersion: '' },
+                { silentFailure: true },
+              ),
+            ]);
+            setCases([]);
+            setTotalCount(0);
+            setApplications([]);
+            setModules([]);
+            setBVersion('');
+            settingsVersionRef.current = '';
+            appsModsLoaded.current = false;
+            showToast('All data cleared', 'info');
+          },
+        });
+      },
+    });
   }
 
   async function assignTestCases(e) {
@@ -547,7 +598,6 @@ function TestCasesPage({ user }) {
   const filteredModules = fApp
     ? modules.filter((m) => m.applicationId === fApp)
     : modules;
-  const totalPages = Math.max(1, Math.ceil(totalCount / PAGE_SIZE));
   const pageIds = cases.map((t) => t._id);
   const selectedOnPage = pageIds.filter((id) => selectedIds.has(id));
   const allPageSelected =
@@ -555,110 +605,116 @@ function TestCasesPage({ user }) {
   const somePageSelected = selectedOnPage.length > 0 && !allPageSelected;
 
   const clearBtn = (onClick) => (
-    <button
+    <IconButton
+      size='small'
       onClick={onClick}
-      title='Clear'
-      style={{
-        background: 'none',
-        border: 'none',
-        cursor: 'pointer',
-        color: 'var(--muted)',
-        fontSize: 14,
-        padding: 0,
-        lineHeight: 1,
-      }}
+      sx={{ color: 'text.disabled', p: 0 }}
     >
       ×
-    </button>
+    </IconButton>
   );
 
   return (
-    <div>
+    <Box>
       <ToastProvider />
 
       {/* Header */}
       <PageHeader
         eyebrow='Data Grid'
         title='Test Cases'
-        sub={loading ? 'Loading…' : `${totalCount} rows`}
+        sub={
+          loading ? (
+            <Skeleton variant='text' width={80} />
+          ) : (
+            `${totalCount} rows`
+          )
+        }
         actions={
-          <div
-            style={{
-              display: 'flex',
-              gap: 8,
-              flexWrap: 'wrap',
-              alignItems: 'center',
-            }}
+          <Stack
+            direction='row'
+            spacing={1}
+            sx={{ flexWrap: 'wrap', alignItems: 'center' }}
           >
-            <button
-              className='btn btn-primary btn-sm'
+            <Button
+              variant='contained'
+              size='small'
               onClick={() => setShowAddModal(true)}
             >
               + Add Test Case
-            </button>
+            </Button>
             {isAdmin && (
-              <button className='btn btn-danger btn-sm' onClick={clearAll}>
+              <Button
+                variant='outlined'
+                color='error'
+                size='small'
+                onClick={clearAll}
+              >
                 Clear All Data
-              </button>
+              </Button>
             )}
-          </div>
+          </Stack>
         }
       />
 
       {/* Bulk Fill */}
-      <div className='panel' style={{ marginBottom: 16 }}>
-        <div
-          className='panel-header'
-          style={{
-            display: 'flex',
+      <Paper variant='outlined' sx={{ mb: 2 }}>
+        <Stack
+          direction='row'
+          sx={{
             alignItems: 'center',
             justifyContent: 'space-between',
+            px: 2.5,
+            py: 2,
+            borderBottom: 1,
+            borderColor: 'divider',
           }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-            <h3 style={{ margin: 0 }}>Bulk Fill</h3>
+          <Stack direction='row' spacing={1.5} sx={{ alignItems: 'center' }}>
+            <Typography variant='panelTitle' component='h2'>
+              Bulk Fill
+            </Typography>
             {selectedIds.size > 0 && (
-              <span style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                <span
-                  style={{
-                    fontSize: 12,
-                    background: 'var(--accent)',
-                    color: '#fff',
-                    borderRadius: 10,
-                    padding: '2px 10px',
-                    fontWeight: 600,
-                  }}
-                >
-                  {selectedIds.size} selected
-                  <button
-                    onClick={() => setSelectedIds(new Set())}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      cursor: 'pointer',
-                      color: '#fff',
-                      fontSize: 13,
-                      marginLeft: 6,
-                      padding: 0,
-                      lineHeight: 1,
-                      opacity: 0.8,
-                    }}
-                    title='Clear selection'
-                  >
-                    ×
-                  </button>
-                </span>
-                <button
-                  className='btn btn-secondary btn-sm'
+              <Stack
+                direction='row'
+                spacing={0.75}
+                sx={{ alignItems: 'center' }}
+              >
+                <Chip
+                  label={
+                    <Stack
+                      direction='row'
+                      spacing={0.5}
+                      sx={{ alignItems: 'center' }}
+                    >
+                      <span>{selectedIds.size} selected</span>
+                      <IconButton
+                        size='small'
+                        onClick={() => setSelectedIds(new Set())}
+                        sx={{ color: 'inherit', p: 0, opacity: 0.8 }}
+                        title='Clear selection'
+                      >
+                        ×
+                      </IconButton>
+                    </Stack>
+                  }
+                  color='primary'
+                  size='small'
+                />
+                <Button
+                  variant='outlined'
+                  size='small'
                   onClick={() => setShowAssignModal(true)}
-                  style={{ fontSize: 12, padding: '3px 10px' }}
+                  sx={{ fontSize: 12, py: '3px', px: '10px' }}
                 >
                   ◷ Assign
-                </button>
-              </span>
+                </Button>
+              </Stack>
             )}
-          </div>
-          <button
+          </Stack>
+          <IconButton
+            size='small'
+            title='Clear bulk fill fields'
+            sx={{ color: 'text.disabled' }}
             onClick={() => {
               setBStatus('');
               setBFromTester('');
@@ -667,539 +723,561 @@ function TestCasesPage({ user }) {
               setBVersion('');
               setBPriority('');
             }}
-            title='Clear bulk fill fields'
-            style={{
-              background: 'none',
-              border: 'none',
-              cursor: 'pointer',
-              color: 'var(--muted)',
-              fontSize: 18,
-              lineHeight: 1,
-              padding: '0 4px',
-            }}
           >
             ×
-          </button>
-        </div>
-        <div className='panel-body'>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 10,
-              marginBottom: 10,
-            }}
-          >
-            <div className='field-group'>
-              <label className='field-label'>Fill Status</label>
-              <select
-                className='field-select'
+          </IconButton>
+        </Stack>
+        <Box sx={{ p: 2.5 }}>
+          <Grid container spacing={1.25} sx={{ mb: 1.25 }}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label='Fill Status'
                 value={bStatus}
                 onChange={(e) => setBStatus(e.target.value)}
               >
-                <option value=''>No change</option>
-                <option value={STATUS.PASS}>Pass</option>
-                <option value={STATUS.FAIL}>Fail</option>
-                <option value={STATUS.PENDING}>Pending</option>
-              </select>
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', alignItems: 'center', gap: 4 }}
-              >
-                From Tester
-                <span
-                  style={{
-                    fontSize: 10,
-                    color: 'var(--muted)',
-                    fontWeight: 400,
-                  }}
-                >
-                  (filter)
-                </span>
-              </label>
-              <select
-                className='field-select'
+                <MenuItem value=''>No change</MenuItem>
+                <MenuItem value={STATUS.PASS}>Pass</MenuItem>
+                <MenuItem value={STATUS.FAIL}>Fail</MenuItem>
+                <MenuItem value={STATUS.PENDING}>Pending</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    spacing={0.5}
+                    sx={{ alignItems: 'center' }}
+                  >
+                    <span>From Tester</span>
+                    <Typography variant='caption' color='text.disabled'>
+                      (filter)
+                    </Typography>
+                  </Stack>
+                }
                 value={bFromTester}
                 onChange={(e) => setBFromTester(e.target.value)}
-                style={{
-                  borderColor: bFromTester ? 'var(--accent)' : undefined,
-                }}
+                sx={
+                  bFromTester
+                    ? {
+                        '& .MuiOutlinedInput-notchedOutline': {
+                          borderColor: 'primary.main',
+                        },
+                      }
+                    : {}
+                }
               >
-                <option value=''>All visible</option>
+                <MenuItem value=''>All visible</MenuItem>
                 {qaUsers.map((u) => (
-                  <option key={u} value={u}>
+                  <MenuItem key={u} value={u}>
                     {u}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>→ Reassign To</label>
-              <select
-                className='field-select'
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label='→ Reassign To'
                 value={bTester}
                 onChange={(e) => setBTester(e.target.value)}
               >
-                <option value=''>No change</option>
+                <MenuItem value=''>No change</MenuItem>
                 {qaUsers.map((u) => (
-                  <option key={u} value={u}>
+                  <MenuItem key={u} value={u}>
                     {u}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Priority</label>
-              <select
-                className='field-select'
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label='Priority'
                 value={bPriority}
                 onChange={(e) => setBPriority(e.target.value)}
-                style={{
-                  ...(bPriority === PRIORITIES.HIGH && {
-                    borderColor: '#dc2626',
-                    color: '#dc2626',
-                    fontWeight: 600,
-                  }),
-                  ...(bPriority === PRIORITIES.MEDIUM && {
-                    borderColor: '#d97706',
-                    color: '#d97706',
-                    fontWeight: 600,
-                  }),
-                  ...(bPriority === PRIORITIES.LOW && {
-                    borderColor: '#16a34a',
-                    color: '#16a34a',
-                    fontWeight: 600,
-                  }),
+                slotProps={{
+                  select: {
+                    sx: {
+                      ...(bPriority === PRIORITIES.HIGH && {
+                        color: 'error.main',
+                        fontWeight: 600,
+                      }),
+                      ...(bPriority === PRIORITIES.MEDIUM && {
+                        color: 'warning.main',
+                        fontWeight: 600,
+                      }),
+                      ...(bPriority === PRIORITIES.LOW && {
+                        color: 'success.main',
+                        fontWeight: 600,
+                      }),
+                    },
+                  },
                 }}
               >
-                <option value=''>No change</option>
-                <option value={PRIORITIES.HIGH}>High</option>
-                <option value={PRIORITIES.MEDIUM}>Medium</option>
-                <option value={PRIORITIES.LOW}>Low</option>
-              </select>
-            </div>
-          </div>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 10,
-              alignItems: 'end',
-            }}
-          >
-            <div className='field-group'>
-              <label className='field-label'>Fill Date</label>
-              <input
-                className='field-input'
+                <MenuItem value=''>No change</MenuItem>
+                <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+              </TextField>
+            </Grid>
+          </Grid>
+          <Grid container spacing={1.25} sx={{ alignItems: 'flex-end' }}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Fill Date'
                 type='date'
                 value={bDate}
                 onChange={(e) => setBDate(e.target.value)}
+                slotProps={{ inputLabel: { shrink: true } }}
               />
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Fill Version</label>
-              <input
-                className='field-input'
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Fill Version'
                 type='text'
                 value={bVersion}
                 onChange={(e) => handleVersionChange(e.target.value)}
                 placeholder='e.g. 2.4.1'
               />
-            </div>
-            <button
-              className='btn btn-secondary'
-              onClick={() => bulkFill(true)}
-              disabled={bulkLoading}
-              style={{
-                ...(bStatus === STATUS.PASS && {
-                  background: '#16a34a',
-                  borderColor: '#16a34a',
-                  color: '#fff',
-                }),
-                ...(bStatus === STATUS.FAIL && {
-                  background: '#dc2626',
-                  borderColor: '#dc2626',
-                  color: '#fff',
-                }),
-                ...(bStatus === STATUS.PENDING && {
-                  background: '#d97706',
-                  borderColor: '#d97706',
-                  color: '#fff',
-                }),
-              }}
-            >
-              {bStatus ? `${bStatus}: Pending Rows` : 'Fill Pending'}
-            </button>
-            <button
-              className='btn btn-primary'
-              onClick={() => bulkFill(false)}
-              disabled={bulkLoading}
-              style={{
-                ...(bStatus === STATUS.PASS && {
-                  background: '#16a34a',
-                  borderColor: '#16a34a',
-                }),
-                ...(bStatus === STATUS.FAIL && {
-                  background: '#dc2626',
-                  borderColor: '#dc2626',
-                }),
-                ...(bStatus === STATUS.PENDING && {
-                  background: '#d97706',
-                  borderColor: '#d97706',
-                }),
-              }}
-            >
-              {selectedIds.size > 0
-                ? `${bStatus || 'Fill'}: Selected (${selectedIds.size})`
-                : bStatus
-                  ? `${bStatus}: All Visible`
-                  : 'Fill Visible'}
-            </button>
-          </div>
-        </div>
-      </div>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Button
+                variant='outlined'
+                fullWidth
+                loading={bulkLoading}
+                onClick={() => bulkFill(true)}
+                color={
+                  bStatus === STATUS.PASS
+                    ? 'success'
+                    : bStatus === STATUS.FAIL
+                      ? 'error'
+                      : bStatus === STATUS.PENDING
+                        ? 'warning'
+                        : 'primary'
+                }
+              >
+                {bStatus ? `${bStatus}: Pending Rows` : 'Fill Pending'}
+              </Button>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <Button
+                variant='contained'
+                fullWidth
+                loading={bulkLoading}
+                onClick={() => bulkFill(false)}
+                color={
+                  bStatus === STATUS.PASS
+                    ? 'success'
+                    : bStatus === STATUS.FAIL
+                      ? 'error'
+                      : bStatus === STATUS.PENDING
+                        ? 'warning'
+                        : 'primary'
+                }
+              >
+                {selectedIds.size > 0
+                  ? `${bStatus || 'Fill'}: Selected (${selectedIds.size})`
+                  : bStatus
+                    ? `${bStatus}: All Visible`
+                    : 'Fill Visible'}
+              </Button>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
 
       {/* Bulk Edit — shown when rows are selected */}
       {selectedIds.size > 0 && (
-        <div
-          className='panel'
-          style={{
-            marginBottom: 16,
-            borderColor: 'var(--accent)',
-            borderWidth: 1,
-            borderStyle: 'solid',
-          }}
-        >
-          <div
-            className='panel-header'
-            style={{
-              display: 'flex',
+        <Paper variant='outlined' sx={{ mb: 2, borderColor: 'primary.main' }}>
+          <Stack
+            direction='row'
+            sx={{
               alignItems: 'center',
               justifyContent: 'space-between',
+              px: 2.5,
+              py: 2,
+              borderBottom: 1,
+              borderColor: 'divider',
             }}
           >
-            <h3 style={{ margin: 0 }}>
-              Bulk Edit
-              <span
-                style={{
-                  fontSize: 12,
-                  background: 'var(--accent)',
-                  color: '#fff',
-                  borderRadius: 10,
-                  padding: '2px 9px',
-                  fontWeight: 600,
-                  marginLeft: 10,
-                }}
-              >
-                {selectedIds.size} selected
-              </span>
-            </h3>
-            <button
+            <Stack direction='row' spacing={1} sx={{ alignItems: 'center' }}>
+              <Typography variant='panelTitle' component='h2'>
+                Bulk Edit
+              </Typography>
+              <Chip
+                label={`${selectedIds.size} selected`}
+                color='primary'
+                size='small'
+              />
+            </Stack>
+            <IconButton
+              size='small'
+              title='Clear bulk edit fields'
+              sx={{ color: 'text.disabled' }}
               onClick={() => {
                 setBePriority('');
                 setBeJiraStory('');
                 setBeApplication('');
                 setBeModule('');
               }}
-              style={{
-                background: 'none',
-                border: 'none',
-                cursor: 'pointer',
-                color: 'var(--muted)',
-                fontSize: 18,
-                lineHeight: 1,
-                padding: '0 4px',
-              }}
-              title='Clear bulk edit fields'
             >
               ×
-            </button>
-          </div>
-          <div className='panel-body'>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(5, 1fr)',
-                gap: 10,
-                alignItems: 'end',
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Application</label>
-                <select
-                  className='field-select'
+            </IconButton>
+          </Stack>
+          <Box sx={{ p: 2.5 }}>
+            <Grid container spacing={1.25} sx={{ alignItems: 'flex-end' }}>
+              <Grid size={{ xs: 12, md: 'grow' }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Application'
                   value={beApplication}
                   onChange={(e) => {
                     setBeApplication(e.target.value);
                     setBeModule('');
                   }}
                 >
-                  <option value=''>No change</option>
+                  <MenuItem value=''>No change</MenuItem>
                   {applications.map((a) => (
-                    <option key={a._id} value={a._id}>
+                    <MenuItem key={a._id} value={a._id}>
                       {a.name}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Module</label>
-                <select
-                  className='field-select'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 'grow' }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Module'
                   value={beModule}
                   onChange={(e) => setBeModule(e.target.value)}
                 >
-                  <option value=''>No change</option>
+                  <MenuItem value=''>No change</MenuItem>
                   {(beApplication
                     ? modules.filter((m) => m.applicationId === beApplication)
                     : modules
                   ).map((m) => (
-                    <option key={m._id} value={m._id}>
+                    <MenuItem key={m._id} value={m._id}>
                       {m.name}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Priority</label>
-                <select
-                  className='field-select'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 'grow' }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Priority'
                   value={bePriority}
                   onChange={(e) => setBePriority(e.target.value)}
                 >
-                  <option value=''>No change</option>
-                  <option value={PRIORITIES.HIGH}>High</option>
-                  <option value={PRIORITIES.MEDIUM}>Medium</option>
-                  <option value={PRIORITIES.LOW}>Low</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Jira Story</label>
-                <input
-                  className='field-input'
+                  <MenuItem value=''>No change</MenuItem>
+                  <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                  <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                  <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 'grow' }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Jira Story'
                   type='text'
                   value={beJiraStory}
                   onChange={(e) => setBeJiraStory(e.target.value)}
                   placeholder='e.g. JIRA-123'
                 />
-              </div>
-              <div>
-                <button
-                  className='btn btn-primary'
-                  style={{ width: '100%' }}
+              </Grid>
+              <Grid size={{ xs: 12, md: 'grow' }}>
+                <Button
+                  variant='contained'
+                  fullWidth
+                  loading={bulkEditLoading}
                   onClick={bulkEdit}
-                  disabled={bulkEditLoading}
                 >
-                  {bulkEditLoading
-                    ? 'Saving…'
-                    : `Apply to ${selectedIds.size} rows`}
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
+                  Apply to {selectedIds.size} rows
+                </Button>
+              </Grid>
+            </Grid>
+          </Box>
+        </Paper>
       )}
 
       {/* Filters */}
-      <div className='panel' style={{ marginBottom: 16 }}>
-        <div
-          className='panel-header'
-          style={{ paddingTop: 12, paddingBottom: 12 }}
+      <Paper variant='outlined' sx={{ mb: 2 }}>
+        <Stack
+          direction='row'
+          sx={{
+            alignItems: 'center',
+            px: 2.5,
+            py: 1.5,
+            borderBottom: 1,
+            borderColor: 'divider',
+          }}
         >
-          <h3 style={{ margin: 0, fontSize: 14 }}>Filters</h3>
-        </div>
-        <div className='panel-body' style={{ padding: '14px 20px' }}>
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(4, 1fr)',
-              gap: 10,
-            }}
-          >
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Application
-                {fApp &&
-                  clearBtn(() => {
-                    setFApp('');
-                    setFMod('');
-                  })}
-              </label>
-              <select
-                className='field-select'
+          <Typography variant='panelTitle' component='h2' sx={{ fontSize: 14 }}>
+            Filters
+          </Typography>
+        </Stack>
+        <Box sx={{ p: '14px 20px' }}>
+          <Grid container spacing={1.25}>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Application</span>
+                    {fApp &&
+                      clearBtn(() => {
+                        setFApp('');
+                        setFMod('');
+                      })}
+                  </Stack>
+                }
                 value={fApp}
                 onChange={(e) => {
                   setFApp(e.target.value);
                   setFMod('');
                 }}
               >
-                <option value=''>All</option>
+                <MenuItem value=''>All</MenuItem>
                 {applications.map((a) => (
-                  <option key={a._id} value={a._id}>
+                  <MenuItem key={a._id} value={a._id}>
                     {a.name}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Module
-                {fMod && clearBtn(() => setFMod(''))}
-              </label>
-              <select
-                className='field-select'
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Module</span>
+                    {fMod && clearBtn(() => setFMod(''))}
+                  </Stack>
+                }
                 value={fMod}
                 onChange={(e) => setFMod(e.target.value)}
               >
-                <option value=''>All</option>
+                <MenuItem value=''>All</MenuItem>
                 {filteredModules.map((m) => (
-                  <option key={m._id} value={m._id}>
+                  <MenuItem key={m._id} value={m._id}>
                     {m.name}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Status
-                {fStatus && clearBtn(() => setFStatus(''))}
-              </label>
-              <select
-                className='field-select'
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Status</span>
+                    {fStatus && clearBtn(() => setFStatus(''))}
+                  </Stack>
+                }
                 value={fStatus}
                 onChange={(e) => setFStatus(e.target.value)}
               >
-                <option value=''>All</option>
-                <option value={STATUS.PASS}>Pass</option>
-                <option value={STATUS.FAIL}>Fail</option>
-                <option value={STATUS.PENDING}>Pending</option>
-              </select>
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Priority
-                {fPriority && clearBtn(() => setFPriority(''))}
-              </label>
-              <select
-                className='field-select'
+                <MenuItem value=''>All</MenuItem>
+                <MenuItem value={STATUS.PASS}>Pass</MenuItem>
+                <MenuItem value={STATUS.FAIL}>Fail</MenuItem>
+                <MenuItem value={STATUS.PENDING}>Pending</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Priority</span>
+                    {fPriority && clearBtn(() => setFPriority(''))}
+                  </Stack>
+                }
                 value={fPriority}
                 onChange={(e) => setFPriority(e.target.value)}
               >
-                <option value=''>All</option>
-                <option value={PRIORITIES.HIGH}>High</option>
-                <option value={PRIORITIES.MEDIUM}>Medium</option>
-                <option value={PRIORITIES.LOW}>Low</option>
-              </select>
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Tested By
-                {fTester && clearBtn(() => setFTester(''))}
-              </label>
-              <select
-                className='field-select'
+                <MenuItem value=''>All</MenuItem>
+                <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Tested By</span>
+                    {fTester && clearBtn(() => setFTester(''))}
+                  </Stack>
+                }
                 value={fTester}
                 onChange={(e) => setFTester(e.target.value)}
               >
-                <option value=''>All</option>
-                <option value={UNASSIGNED_SENTINEL}>Unassigned</option>
+                <MenuItem value=''>All</MenuItem>
+                <MenuItem value={UNASSIGNED_SENTINEL}>Unassigned</MenuItem>
                 {qaUsers.map((u) => (
-                  <option key={u} value={u}>
+                  <MenuItem key={u} value={u}>
                     {u}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Assigned To
-                {fAssignedTo && clearBtn(() => setFAssignedTo(''))}
-              </label>
-              <select
-                className='field-select'
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                select
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Assigned To</span>
+                    {fAssignedTo && clearBtn(() => setFAssignedTo(''))}
+                  </Stack>
+                }
                 value={fAssignedTo}
                 onChange={(e) => setFAssignedTo(e.target.value)}
               >
-                <option value=''>All</option>
-                <option value={UNASSIGNED_SENTINEL}>Unassigned</option>
+                <MenuItem value=''>All</MenuItem>
+                <MenuItem value={UNASSIGNED_SENTINEL}>Unassigned</MenuItem>
                 {qaUsers.map((u) => (
-                  <option key={u} value={u}>
+                  <MenuItem key={u} value={u}>
                     {u}
-                  </option>
+                  </MenuItem>
                 ))}
-              </select>
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Version</label>
-              <input
-                className='field-input'
+              </TextField>
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Version'
                 type='search'
                 value={fVersion}
                 onChange={(e) => setFVersion(e.target.value)}
                 placeholder='Any version'
               />
-            </div>
-            <div className='field-group'>
-              <label
-                className='field-label'
-                style={{ display: 'flex', justifyContent: 'space-between' }}
-              >
-                Jira Story
-                {fJiraStory && clearBtn(() => setFJiraStory(''))}
-              </label>
-              <input
-                className='field-input'
+            </Grid>
+            <Grid size={{ xs: 12, md: 3 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label={
+                  <Stack
+                    direction='row'
+                    sx={{
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      width: '100%',
+                    }}
+                  >
+                    <span>Jira Story</span>
+                    {fJiraStory && clearBtn(() => setFJiraStory(''))}
+                  </Stack>
+                }
                 type='search'
                 value={fJiraStory}
                 onChange={(e) => setFJiraStory(e.target.value)}
                 placeholder='e.g. JIRA-123'
               />
-            </div>
-          </div>
-        </div>
-      </div>
+            </Grid>
+          </Grid>
+        </Box>
+      </Paper>
 
       {/* Table */}
-      <div className='panel'>
-        <div className='table-wrap'>
-          {loading ? (
-            <EmptyState>Loading test cases…</EmptyState>
-          ) : totalCount === 0 ? (
-            <EmptyState icon='◎' title='No test cases found'>
-              <p>
-                Import an Excel file from the Dashboard to populate the grid.
-              </p>
-            </EmptyState>
-          ) : (
-            <table>
-              <thead>
-                <tr>
-                  <th
-                    style={{
-                      width: 36,
-                      textAlign: 'center',
-                      padding: '8px 6px',
-                    }}
+      <Paper variant='outlined'>
+        {!loading && totalCount === 0 ? (
+          <EmptyState icon={<SearchOffOutlined />} title='No test cases found'>
+            <p>Import an Excel file from the Dashboard to populate the grid.</p>
+          </EmptyState>
+        ) : (
+          <TableContainer>
+            <Table size='small' stickyHeader>
+              <TableHead
+                sx={{
+                  '& th': {
+                    bgcolor: 'action.selected',
+                    borderBottomWidth: 2,
+                    borderBottomColor: 'divider',
+                  },
+                }}
+              >
+                <TableRow>
+                  <TableCell
+                    sx={{ width: 36, textAlign: 'center', px: '6px', py: 1 }}
                   >
                     <input
                       type='checkbox'
@@ -1211,18 +1289,19 @@ function TestCasesPage({ user }) {
                         toggleSelectPage(pageIds, allPageSelected)
                       }
                       title={allPageSelected ? 'Deselect page' : 'Select page'}
+                      disabled={loading}
                     />
-                  </th>
-                  <th
-                    style={{
+                  </TableCell>
+                  <TableCell
+                    sx={{
                       width: 40,
                       textAlign: 'center',
-                      color: 'var(--muted)',
+                      color: 'text.disabled',
                       fontSize: 12,
                     }}
                   >
                     #
-                  </th>
+                  </TableCell>
                   {[
                     'Platform',
                     'Module',
@@ -1243,92 +1322,73 @@ function TestCasesPage({ user }) {
                     'Version',
                     '',
                   ].map((h) => (
-                    <th key={h}>{h}</th>
+                    <TableCell key={h}>{h}</TableCell>
                   ))}
-                </tr>
-              </thead>
-              <tbody>
-                {cases.map((tc, index) => (
-                  <TestCaseRow
-                    key={tc._id}
-                    tc={tc}
-                    rowNum={(page - 1) * PAGE_SIZE + index + 1}
-                    saving={!!saving[tc._id]}
-                    onSave={saveField}
-                    onEdit={openEdit}
-                    selected={selectedIds.has(tc._id)}
-                    onToggle={() => toggleSelect(tc._id)}
-                    qaUsers={qaUsers}
-                  />
-                ))}
-              </tbody>
-            </table>
-          )}
-        </div>
-        {!loading && totalCount > 0 && (
-          <div
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              padding: '12px 20px',
-              borderTop: '1px solid var(--line)',
-              fontSize: 13,
-              color: 'var(--muted)',
-            }}
-          >
-            <span>
-              Rows {(page - 1) * PAGE_SIZE + 1}–
-              {Math.min(page * PAGE_SIZE, totalCount)} of {totalCount}
-            </span>
-            <div style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
-              <button
-                className='btn btn-secondary btn-sm'
-                onClick={() => goToPage(Math.max(1, page - 1))}
-                disabled={page === 1}
-              >
-                ← Prev
-              </button>
-              <span style={{ padding: '0 8px' }}>
-                Page {page} of {totalPages}
-              </span>
-              <button
-                className='btn btn-secondary btn-sm'
-                onClick={() => goToPage(Math.min(totalPages, page + 1))}
-                disabled={page === totalPages}
-              >
-                Next →
-              </button>
-            </div>
-          </div>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {loading
+                  ? Array.from({ length: 8 }, (_, i) => (
+                      <TableRow key={i}>
+                        {Array.from({ length: 20 }, (__, j) => (
+                          <TableCell key={j}>
+                            <Skeleton variant='text' />
+                          </TableCell>
+                        ))}
+                      </TableRow>
+                    ))
+                  : cases.map((tc, index) => (
+                      <TestCaseRow
+                        key={tc._id}
+                        tc={tc}
+                        rowNum={(page - 1) * pageSize + index + 1}
+                        saving={!!saving[tc._id]}
+                        onSave={saveField}
+                        onEdit={openEdit}
+                        selected={selectedIds.has(tc._id)}
+                        onToggle={() => toggleSelect(tc._id)}
+                        qaUsers={qaUsers}
+                      />
+                    ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
-      </div>
+        {!loading && totalCount > 0 && (
+          <TablePagination
+            component='div'
+            count={totalCount}
+            page={page - 1}
+            rowsPerPage={pageSize}
+            rowsPerPageOptions={PAGE_SIZE_OPTIONS}
+            onPageChange={(_, newPage) => goToPage(newPage + 1)}
+            onRowsPerPageChange={(e) => setPageSize(Number(e.target.value))}
+          />
+        )}
+      </Paper>
 
       {/* Add Test Case Modal */}
-      {showAddModal && (
-        <Modal
-          title='Add Test Case'
-          onClose={() => {
-            setShowAddModal(false);
-            setAddForm(EMPTY_FORM);
-            setNewModuleName(null);
-          }}
-          maxWidth={720}
-          cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}
-        >
+      <Dialog
+        open={showAddModal}
+        onClose={() => {
+          setShowAddModal(false);
+          setAddForm(EMPTY_FORM);
+          setNewModuleName(null);
+        }}
+        maxWidth='md'
+        fullWidth
+        PaperProps={{ sx: { maxHeight: '90vh' } }}
+      >
+        <DialogTitle>Add Test Case</DialogTitle>
+        <DialogContent dividers>
           <form onSubmit={addTestCase}>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 14,
-                marginBottom: 14,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Application *</label>
-                <select
-                  className='field-select'
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Application *'
                   required
                   value={addForm.applicationId}
                   onChange={(e) =>
@@ -1339,37 +1399,35 @@ function TestCasesPage({ user }) {
                     }))
                   }
                 >
-                  <option value=''>Select application</option>
+                  <MenuItem value=''>Select application</MenuItem>
                   {applications.map((a) => (
-                    <option key={a._id} value={a._id}>
+                    <MenuItem key={a._id} value={a._id}>
                       {a.name}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Module *</label>
-                <select
-                  className='field-select'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Module *'
                   required
                   value={addForm.moduleId}
                   onChange={(e) => {
                     if (e.target.value === '__new__') {
                       setAddForm((f) => ({ ...f, moduleId: '' }));
                       setNewModuleName('');
-                      setTimeout(
-                        () =>
-                          document.getElementById('new-module-input')?.focus(),
-                        50,
-                      );
+                      setTimeout(() => newModuleInputRef.current?.focus(), 50);
                     } else {
                       setAddForm((f) => ({ ...f, moduleId: e.target.value }));
                       setNewModuleName(null);
                     }
                   }}
                 >
-                  <option value=''>Select module</option>
-                  <option value='__new__'>+ Add new module…</option>
+                  <MenuItem value=''>Select module</MenuItem>
+                  <MenuItem value='__new__'>+ Add new module…</MenuItem>
                   {modules
                     .filter(
                       (m) =>
@@ -1377,16 +1435,16 @@ function TestCasesPage({ user }) {
                         m.applicationId === addForm.applicationId,
                     )
                     .map((m) => (
-                      <option key={m._id} value={m._id}>
+                      <MenuItem key={m._id} value={m._id}>
                         {m.name}
-                      </option>
+                      </MenuItem>
                     ))}
-                </select>
+                </TextField>
                 {newModuleName !== null && (
-                  <div style={{ display: 'flex', gap: 6, marginTop: 6 }}>
-                    <input
-                      id='new-module-input'
-                      className='field-input'
+                  <Stack direction='row' spacing={0.75} sx={{ mt: 0.75 }}>
+                    <TextField
+                      inputRef={newModuleInputRef}
+                      size='small'
                       value={newModuleName}
                       onChange={(e) => setNewModuleName(e.target.value)}
                       onKeyDown={(e) => {
@@ -1396,101 +1454,106 @@ function TestCasesPage({ user }) {
                         }
                       }}
                       placeholder='New module name'
-                      style={{ flex: 1 }}
+                      sx={{ flex: 1 }}
                     />
-                    <button
-                      type='button'
-                      className='btn btn-primary btn-sm'
+                    <Button
+                      variant='contained'
+                      size='small'
                       onClick={handleCreateModule}
                       disabled={creatingModule || !newModuleName.trim()}
-                      style={{ whiteSpace: 'nowrap' }}
+                      sx={{ whiteSpace: 'nowrap' }}
                     >
                       {creatingModule ? '…' : 'Create'}
-                    </button>
-                    <button
-                      type='button'
-                      className='btn btn-secondary btn-sm'
+                    </Button>
+                    <Button
+                      variant='outlined'
+                      size='small'
                       onClick={() => setNewModuleName(null)}
-                      style={{ padding: '0 8px' }}
+                      sx={{ px: 1 }}
                     >
                       ×
-                    </button>
-                  </div>
+                    </Button>
+                  </Stack>
                 )}
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Test Case ID</label>
-                <input
-                  className='field-input'
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Test Case ID'
                   value={addForm.testCaseId}
                   placeholder='e.g. TC-001'
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, testCaseId: e.target.value }))
                   }
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Type</label>
-                <input
-                  className='field-input'
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Type'
                   value={addForm.type}
                   placeholder='e.g. Functional'
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, type: e.target.value }))
                   }
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Priority</label>
-                <select
-                  className='field-select'
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Priority'
                   value={addForm.priority}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, priority: e.target.value }))
                   }
                 >
-                  <option value=''>—</option>
-                  <option value={PRIORITIES.HIGH}>High</option>
-                  <option value={PRIORITIES.MEDIUM}>Medium</option>
-                  <option value={PRIORITIES.LOW}>Low</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Jira Story</label>
-                <input
-                  className='field-input'
+                  <MenuItem value=''>—</MenuItem>
+                  <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                  <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                  <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Jira Story'
                   value={addForm.jiraStory}
                   placeholder='e.g. JIRA-123'
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, jiraStory: e.target.value }))
                   }
                 />
-              </div>
-            </div>
-            <div className='field-group' style={{ marginBottom: 14 }}>
-              <label className='field-label'>Test Case *</label>
-              <textarea
-                className='field-input'
+              </Grid>
+            </Grid>
+            <Box sx={{ mb: 1.75 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Test Case *'
                 required
+                multiline
                 rows={2}
                 value={addForm.testCase}
                 placeholder='Describe the test case'
                 onChange={(e) =>
                   setAddForm((f) => ({ ...f, testCase: e.target.value }))
                 }
-                style={{ resize: 'vertical' }}
               />
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 14,
-                marginBottom: 14,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Preconditions</label>
+            </Box>
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Preconditions
+                </Typography>
                 <RichTextEditor
                   value={addForm.preconditions}
                   onChange={(v) =>
@@ -1499,18 +1562,30 @@ function TestCasesPage({ user }) {
                   placeholder='List any preconditions…'
                   minHeight={72}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Steps</label>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Steps
+                </Typography>
                 <RichTextEditor
                   value={addForm.steps}
                   onChange={(v) => setAddForm((f) => ({ ...f, steps: v }))}
                   placeholder='1. Step one&#10;2. Step two…'
                   minHeight={72}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Expected Result *</label>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Expected Result *
+                </Typography>
                 <RichTextEditor
                   value={addForm.expectedResult}
                   onChange={(v) =>
@@ -1519,9 +1594,15 @@ function TestCasesPage({ user }) {
                   placeholder='Describe the expected outcome…'
                   minHeight={72}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Actual Result</label>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Actual Result
+                </Typography>
                 <RichTextEditor
                   value={addForm.actualResult}
                   onChange={(v) =>
@@ -1530,62 +1611,62 @@ function TestCasesPage({ user }) {
                   placeholder='Describe the actual outcome…'
                   minHeight={72}
                 />
-              </div>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 14,
-                marginBottom: 20,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Status</label>
-                <select
-                  className='field-select'
+              </Grid>
+            </Grid>
+            <Grid container spacing={1.75} sx={{ mb: 2.5 }}>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Status'
                   value={addForm.status}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, status: e.target.value }))
                   }
                 >
-                  <option value=''>Pending</option>
-                  <option value={STATUS.PASS}>Pass</option>
-                  <option value={STATUS.FAIL}>Fail</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Tested By</label>
-                <select
-                  className='field-select'
+                  <MenuItem value=''>Pending</MenuItem>
+                  <MenuItem value={STATUS.PASS}>Pass</MenuItem>
+                  <MenuItem value={STATUS.FAIL}>Fail</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Tested By'
                   value={addForm.testedBy}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, testedBy: e.target.value }))
                   }
                 >
-                  <option value=''>—</option>
+                  <MenuItem value=''>—</MenuItem>
                   {qaUsers.map((u) => (
-                    <option key={u} value={u}>
+                    <MenuItem key={u} value={u}>
                       {u}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Tested On</label>
-                <input
-                  className='field-input'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Tested On'
                   type='date'
                   value={addForm.testedOn}
                   onChange={(e) =>
                     setAddForm((f) => ({ ...f, testedOn: e.target.value }))
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Version</label>
-                <input
-                  className='field-input'
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Version'
                   value={addForm.softwareVersionTested}
                   placeholder={bVersion || ''}
                   onChange={(e) =>
@@ -1595,14 +1676,15 @@ function TestCasesPage({ user }) {
                     }))
                   }
                 />
-              </div>
-            </div>
-            <div
-              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
+              </Grid>
+            </Grid>
+            <Stack
+              direction='row'
+              spacing={1.25}
+              sx={{ justifyContent: 'flex-end' }}
             >
-              <button
-                type='button'
-                className='btn btn-secondary'
+              <Button
+                variant='outlined'
                 onClick={() => {
                   setShowAddModal(false);
                   setAddForm(EMPTY_FORM);
@@ -1610,57 +1692,44 @@ function TestCasesPage({ user }) {
                 }}
               >
                 Cancel
-              </button>
-              <button
-                type='submit'
-                className='btn btn-primary'
-                disabled={addSaving}
-              >
-                {addSaving ? 'Saving…' : 'Add Test Case'}
-              </button>
-            </div>
+              </Button>
+              <Button type='submit' variant='contained' loading={addSaving}>
+                Add Test Case
+              </Button>
+            </Stack>
           </form>
-        </Modal>
-      )}
+        </DialogContent>
+      </Dialog>
 
       {/* Edit Test Case Modal */}
-      {editTc && (
-        <Modal
-          title={
-            <>
-              {editTc.testCaseId && (
-                <span
-                  style={{
-                    fontSize: 12,
-                    color: 'var(--muted)',
-                    display: 'block',
-                    fontWeight: 400,
-                  }}
-                >
-                  {editTc.testCaseId}
-                </span>
-              )}
-              Edit Test Case
-            </>
-          }
-          onClose={() => setEditTc(null)}
-          maxWidth={800}
-          cardStyle={{ maxHeight: '90vh', overflow: 'auto' }}
-        >
+      <Dialog
+        open={!!editTc}
+        onClose={() => setEditTc(null)}
+        maxWidth='md'
+        fullWidth
+        PaperProps={{ sx: { maxHeight: '90vh' } }}
+      >
+        <DialogTitle>
+          {editTc?.testCaseId && (
+            <Typography
+              variant='metricSub'
+              sx={{ display: 'block', color: 'text.disabled', fontWeight: 400 }}
+            >
+              {editTc.testCaseId}
+            </Typography>
+          )}
+          Edit Test Case
+        </DialogTitle>
+        <DialogContent dividers>
           <form onSubmit={saveEdit}>
             {/* Application, Module, Priority, Jira Story */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr 1fr',
-                gap: 14,
-                marginBottom: 14,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Application</label>
-                <select
-                  className='field-select'
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Application'
                   value={editForm.applicationId}
                   onChange={(e) =>
                     setEditForm((f) => ({
@@ -1670,24 +1739,26 @@ function TestCasesPage({ user }) {
                     }))
                   }
                 >
-                  <option value=''>—</option>
+                  <MenuItem value=''>—</MenuItem>
                   {applications.map((a) => (
-                    <option key={a._id} value={a._id}>
+                    <MenuItem key={a._id} value={a._id}>
                       {a.name}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Module</label>
-                <select
-                  className='field-select'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Module'
                   value={editForm.moduleId}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, moduleId: e.target.value }))
                   }
                 >
-                  <option value=''>—</option>
+                  <MenuItem value=''>—</MenuItem>
                   {modules
                     .filter(
                       (m) =>
@@ -1695,103 +1766,102 @@ function TestCasesPage({ user }) {
                         m.applicationId === editForm.applicationId,
                     )
                     .map((m) => (
-                      <option key={m._id} value={m._id}>
+                      <MenuItem key={m._id} value={m._id}>
                         {m.name}
-                      </option>
+                      </MenuItem>
                     ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Priority</label>
-                <select
-                  className='field-select'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Priority'
                   value={editForm.priority || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, priority: e.target.value }))
                   }
                 >
-                  <option value=''>—</option>
-                  <option value={PRIORITIES.HIGH}>High</option>
-                  <option value={PRIORITIES.MEDIUM}>Medium</option>
-                  <option value={PRIORITIES.LOW}>Low</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Jira Story</label>
-                <input
-                  className='field-input'
+                  <MenuItem value=''>—</MenuItem>
+                  <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                  <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                  <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Jira Story'
                   value={editForm.jiraStory || ''}
                   placeholder='e.g. JIRA-123'
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, jiraStory: e.target.value }))
                   }
                 />
-              </div>
-            </div>
+              </Grid>
+            </Grid>
             {/* ID, Type, Traceability */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr 1fr',
-                gap: 14,
-                marginBottom: 14,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Test Case ID</label>
-                <input
-                  className='field-input'
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Test Case ID'
                   value={editForm.testCaseId || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, testCaseId: e.target.value }))
                   }
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Type</label>
-                <input
-                  className='field-input'
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Type'
                   value={editForm.type || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, type: e.target.value }))
                   }
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Traceability</label>
-                <input
-                  className='field-input'
+              </Grid>
+              <Grid size={{ xs: 12, md: 4 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Traceability'
                   value={editForm.traceability || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, traceability: e.target.value }))
                   }
                 />
-              </div>
-            </div>
+              </Grid>
+            </Grid>
             {/* Test Case */}
-            <div className='field-group' style={{ marginBottom: 14 }}>
-              <label className='field-label'>Test Case</label>
-              <textarea
-                className='field-input'
+            <Box sx={{ mb: 1.75 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Test Case'
+                multiline
                 rows={2}
                 value={editForm.testCase || ''}
                 onChange={(e) =>
                   setEditForm((f) => ({ ...f, testCase: e.target.value }))
                 }
-                style={{ resize: 'vertical' }}
               />
-            </div>
+            </Box>
             {/* Preconditions, Steps */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 14,
-                marginBottom: 14,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Preconditions</label>
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Preconditions
+                </Typography>
                 <RichTextEditor
                   value={editForm.preconditions || ''}
                   onChange={(v) =>
@@ -1800,28 +1870,33 @@ function TestCasesPage({ user }) {
                   placeholder='List any preconditions…'
                   minHeight={80}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Steps</label>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Steps
+                </Typography>
                 <RichTextEditor
                   value={editForm.steps || ''}
                   onChange={(v) => setEditForm((f) => ({ ...f, steps: v }))}
                   placeholder='1. Navigate to…'
                   minHeight={80}
                 />
-              </div>
-            </div>
+              </Grid>
+            </Grid>
             {/* Expected, Actual */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 14,
-                marginBottom: 14,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Expected Result</label>
+            <Grid container spacing={1.75} sx={{ mb: 1.75 }}>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Expected Result
+                </Typography>
                 <RichTextEditor
                   value={editForm.expectedResult || ''}
                   onChange={(v) =>
@@ -1830,9 +1905,15 @@ function TestCasesPage({ user }) {
                   placeholder='Describe the expected outcome…'
                   minHeight={80}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Actual Result</label>
+              </Grid>
+              <Grid size={{ xs: 12, md: 6 }}>
+                <Typography
+                  variant='caption'
+                  color='text.secondary'
+                  sx={{ display: 'block', mb: 0.5 }}
+                >
+                  Actual Result
+                </Typography>
                 <RichTextEditor
                   value={editForm.actualResult || ''}
                   onChange={(v) =>
@@ -1841,13 +1922,14 @@ function TestCasesPage({ user }) {
                   placeholder='Describe the actual outcome…'
                   minHeight={80}
                 />
-              </div>
-            </div>
+              </Grid>
+            </Grid>
             {/* Defects */}
-            <div className='field-group' style={{ marginBottom: 14 }}>
-              <label className='field-label'>Defects / Improvements</label>
-              <input
-                className='field-input'
+            <Box sx={{ mb: 1.75 }}>
+              <TextField
+                fullWidth
+                size='small'
+                label='Defects / Improvements'
                 value={editForm.defectsImprovements || ''}
                 onChange={(e) =>
                   setEditForm((f) => ({
@@ -1856,62 +1938,62 @@ function TestCasesPage({ user }) {
                   }))
                 }
               />
-            </div>
+            </Box>
             {/* Status, Tested By, Tested On, Version */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(4, 1fr)',
-                gap: 14,
-                marginBottom: 20,
-              }}
-            >
-              <div className='field-group'>
-                <label className='field-label'>Status</label>
-                <select
-                  className='field-select'
+            <Grid container spacing={1.75} sx={{ mb: 2.5 }}>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Status'
                   value={editForm.status || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, status: e.target.value }))
                   }
                 >
-                  <option value=''>Pending</option>
-                  <option value={STATUS.PASS}>Pass</option>
-                  <option value={STATUS.FAIL}>Fail</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Tested By</label>
-                <select
-                  className='field-select'
+                  <MenuItem value=''>Pending</MenuItem>
+                  <MenuItem value={STATUS.PASS}>Pass</MenuItem>
+                  <MenuItem value={STATUS.FAIL}>Fail</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Tested By'
                   value={editForm.testedBy || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, testedBy: e.target.value }))
                   }
                 >
-                  <option value=''>—</option>
+                  <MenuItem value=''>—</MenuItem>
                   {qaUsers.map((u) => (
-                    <option key={u} value={u}>
+                    <MenuItem key={u} value={u}>
                       {u}
-                    </option>
+                    </MenuItem>
                   ))}
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Tested On</label>
-                <input
-                  className='field-input'
+                </TextField>
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Tested On'
                   type='date'
                   value={toDateInputValue(editForm.testedOn || '')}
                   onChange={(e) =>
                     setEditForm((f) => ({ ...f, testedOn: e.target.value }))
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Version</label>
-                <input
-                  className='field-input'
+              </Grid>
+              <Grid size={{ xs: 12, md: 3 }}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Version'
                   value={editForm.softwareVersionTested || ''}
                   onChange={(e) =>
                     setEditForm((f) => ({
@@ -1920,145 +2002,210 @@ function TestCasesPage({ user }) {
                     }))
                   }
                 />
-              </div>
-            </div>
-            <div
-              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
+              </Grid>
+            </Grid>
+            <Stack
+              direction='row'
+              spacing={1.25}
+              sx={{ justifyContent: 'flex-end' }}
             >
-              <button
-                type='button'
-                className='btn btn-secondary'
-                onClick={() => setEditTc(null)}
-              >
+              <Button variant='outlined' onClick={() => setEditTc(null)}>
                 Cancel
-              </button>
-              <button
-                type='submit'
-                className='btn btn-primary'
-                disabled={editSaving}
-              >
-                {editSaving ? 'Saving…' : 'Save Changes'}
-              </button>
-            </div>
+              </Button>
+              <Button type='submit' variant='contained' loading={editSaving}>
+                Save Changes
+              </Button>
+            </Stack>
           </form>
-        </Modal>
-      )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Confirm Dialog */}
+      <Dialog
+        open={confirmDialog.open}
+        onClose={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        maxWidth='xs'
+      >
+        <DialogTitle>Confirm</DialogTitle>
+        <DialogContent>
+          <Typography>{confirmDialog.message}</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setConfirmDialog((prev) => ({ ...prev, open: false }))
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            variant='contained'
+            color='error'
+            onClick={confirmDialog.onConfirm}
+          >
+            Confirm
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Prompt Dialog */}
+      <Dialog
+        open={promptDialog.open}
+        onClose={() => setPromptDialog((prev) => ({ ...prev, open: false }))}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>Clear All Data</DialogTitle>
+        <DialogContent>
+          <TextField
+            autoFocus
+            fullWidth
+            size='small'
+            label='Type RESET to confirm'
+            value={promptDialog.value}
+            onChange={(e) =>
+              setPromptDialog((prev) => ({ ...prev, value: e.target.value }))
+            }
+            sx={{ mt: 1 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={() =>
+              setPromptDialog((prev) => ({ ...prev, open: false }))
+            }
+          >
+            Cancel
+          </Button>
+          <Button
+            variant='contained'
+            color='error'
+            onClick={() => promptDialog.onConfirm(promptDialog.value)}
+          >
+            Clear
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Assign Selected Modal */}
-      {showAssignModal && (
-        <Modal
-          title={`Assign ${selectedIds.size} Test Case${
-            selectedIds.size !== 1 ? 's' : ''
-          }`}
-          onClose={() => setShowAssignModal(false)}
-          maxWidth={460}
-        >
+      <Dialog
+        open={showAssignModal}
+        onClose={() => setShowAssignModal(false)}
+        maxWidth='xs'
+        fullWidth
+      >
+        <DialogTitle>
+          Assign {selectedIds.size} Test Case{selectedIds.size !== 1 ? 's' : ''}
+        </DialogTitle>
+        <DialogContent dividers>
           <form onSubmit={assignTestCases} style={{ display: 'grid', gap: 14 }}>
-            <div className='field-group'>
-              <label className='field-label'>
-                Title{' '}
-                <span style={{ color: 'var(--muted)', fontWeight: 400 }}>
-                  (optional)
-                </span>
-              </label>
-              <input
-                className='field-input'
-                type='text'
-                value={assignForm.title}
-                onChange={(e) =>
-                  setAssignForm((f) => ({ ...f, title: e.target.value }))
-                }
-                placeholder='e.g. Login flow — sprint 12'
-              />
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Assign to</label>
-              <select
-                className='field-select'
-                value={assignForm.assignedTo}
-                onChange={(e) =>
-                  setAssignForm((f) => ({ ...f, assignedTo: e.target.value }))
-                }
-                required
-              >
-                <option value=''>Select team member…</option>
-                {qaUsers.map((u) => (
-                  <option key={u} value={u}>
-                    {u}
-                  </option>
-                ))}
-              </select>
-            </div>
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: '1fr 1fr',
-                gap: 12,
-              }}
+            <TextField
+              fullWidth
+              size='small'
+              label={
+                <Stack
+                  direction='row'
+                  spacing={0.5}
+                  sx={{ alignItems: 'center' }}
+                >
+                  <span>Title</span>
+                  <Typography variant='caption' color='text.disabled'>
+                    (optional)
+                  </Typography>
+                </Stack>
+              }
+              type='text'
+              value={assignForm.title}
+              onChange={(e) =>
+                setAssignForm((f) => ({ ...f, title: e.target.value }))
+              }
+              placeholder='e.g. Login flow — sprint 12'
+            />
+            <TextField
+              select
+              fullWidth
+              size='small'
+              label='Assign to'
+              value={assignForm.assignedTo}
+              onChange={(e) =>
+                setAssignForm((f) => ({ ...f, assignedTo: e.target.value }))
+              }
+              required
             >
-              <div className='field-group'>
-                <label className='field-label'>Priority</label>
-                <select
-                  className='field-select'
+              <MenuItem value=''>Select team member…</MenuItem>
+              {qaUsers.map((u) => (
+                <MenuItem key={u} value={u}>
+                  {u}
+                </MenuItem>
+              ))}
+            </TextField>
+            <Grid container spacing={1.5}>
+              <Grid size={6}>
+                <TextField
+                  select
+                  fullWidth
+                  size='small'
+                  label='Priority'
                   value={assignForm.priority}
                   onChange={(e) =>
                     setAssignForm((f) => ({ ...f, priority: e.target.value }))
                   }
                 >
-                  <option value={PRIORITIES.HIGH}>High</option>
-                  <option value={PRIORITIES.MEDIUM}>Medium</option>
-                  <option value={PRIORITIES.LOW}>Low</option>
-                </select>
-              </div>
-              <div className='field-group'>
-                <label className='field-label'>Due date</label>
-                <input
-                  className='field-input'
+                  <MenuItem value={PRIORITIES.HIGH}>High</MenuItem>
+                  <MenuItem value={PRIORITIES.MEDIUM}>Medium</MenuItem>
+                  <MenuItem value={PRIORITIES.LOW}>Low</MenuItem>
+                </TextField>
+              </Grid>
+              <Grid size={6}>
+                <TextField
+                  fullWidth
+                  size='small'
+                  label='Due date'
                   type='date'
                   value={assignForm.dueDate}
                   onChange={(e) =>
                     setAssignForm((f) => ({ ...f, dueDate: e.target.value }))
                   }
+                  slotProps={{ inputLabel: { shrink: true } }}
                 />
-              </div>
-            </div>
-            <div className='field-group'>
-              <label className='field-label'>Notes</label>
-              <textarea
-                className='field-input'
-                rows={2}
-                value={assignForm.notes}
-                onChange={(e) =>
-                  setAssignForm((f) => ({ ...f, notes: e.target.value }))
-                }
-                placeholder='Optional context or instructions…'
-                style={{ resize: 'vertical' }}
-              />
-            </div>
-            <div
-              style={{ display: 'flex', gap: 10, justifyContent: 'flex-end' }}
+              </Grid>
+            </Grid>
+            <TextField
+              fullWidth
+              size='small'
+              label='Notes'
+              multiline
+              rows={2}
+              value={assignForm.notes}
+              onChange={(e) =>
+                setAssignForm((f) => ({ ...f, notes: e.target.value }))
+              }
+              placeholder='Optional context or instructions…'
+            />
+            <Stack
+              direction='row'
+              spacing={1.25}
+              sx={{ justifyContent: 'flex-end' }}
             >
-              <button
-                type='button'
-                className='btn btn-secondary'
+              <Button
+                variant='outlined'
                 onClick={() => setShowAssignModal(false)}
               >
                 Cancel
-              </button>
-              <button
+              </Button>
+              <Button
                 type='submit'
-                className='btn btn-primary'
-                disabled={assignSaving || !assignForm.assignedTo}
+                variant='contained'
+                loading={assignSaving}
+                disabled={!assignForm.assignedTo}
               >
-                {assignSaving
-                  ? 'Assigning…'
-                  : `Assign to ${assignForm.assignedTo || '…'}`}
-              </button>
-            </div>
+                Assign to {assignForm.assignedTo || '…'}
+              </Button>
+            </Stack>
           </form>
-        </Modal>
-      )}
-    </div>
+        </DialogContent>
+      </Dialog>
+    </Box>
   );
 }
 

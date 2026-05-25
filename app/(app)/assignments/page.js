@@ -1,7 +1,7 @@
+import { getServerSession } from 'next-auth';
 import { authOptions } from '@/lib/auth';
 import { getAssignmentsPageData } from '@/lib/db/assignmentsData';
 import { getDb } from '@/lib/mongodb';
-import { getServerSession } from 'next-auth';
 import AssignmentsClient from './AssignmentsClient';
 
 export const dynamic = 'force-dynamic';

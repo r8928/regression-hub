@@ -1,17 +1,24 @@
 'use client';
 
+import { Alert, Box, Button, Typography } from '@mui/material';
+
 export default function AssignmentsError({ error, reset }) {
   return (
-    <div style={{ padding: '40px 24px', textAlign: 'center' }}>
-      <h2 style={{ fontSize: 18, fontWeight: 700, marginBottom: 8 }}>
-        Failed to load assignments
-      </h2>
-      <p style={{ color: 'var(--muted)', marginBottom: 20, fontSize: 14 }}>
+    <Box sx={{ p: 5, textAlign: 'center' }}>
+      <Alert severity='error' sx={{ mb: 2, textAlign: 'left' }}>
         {error?.message || 'Something went wrong. Try refreshing the page.'}
-      </p>
-      <button className='btn btn-primary' onClick={reset}>
+      </Alert>
+      <Typography
+        variant='panelTitle'
+        component='h2'
+        gutterBottom
+        display='block'
+      >
+        Failed to load assignments
+      </Typography>
+      <Button variant='contained' onClick={reset} sx={{ mt: 1 }}>
         Try again
-      </button>
-    </div>
+      </Button>
+    </Box>
   );
 }

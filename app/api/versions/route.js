@@ -1,7 +1,7 @@
+import { NextResponse } from 'next/server';
 import { deleteVersion, getVersions } from '@/lib/db/versionsData';
 import { ApiError } from '@/lib/errors';
 import { withAdmin, withTeam } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const GET = withTeam(async (_req, _ctx, { teamId, db }) => {
   const versions = await getVersions(db, teamId);

@@ -1,9 +1,9 @@
 import { NextResponse } from 'next/server';
-import { checkRateLimit } from '@/lib/rateLimit';
-import { withTeam } from '@/lib/server/withTeam';
 import { bulkUpdateTestCases } from '@/lib/db/testCasesBulkData';
-import { bulkUpdateBodySchema } from '@/lib/schemas/testCasesBulk';
 import { ApiError } from '@/lib/errors';
+import { checkRateLimit } from '@/lib/rateLimit';
+import { bulkUpdateBodySchema } from '@/lib/schemas/testCasesBulk';
+import { withTeam } from '@/lib/server/withTeam';
 
 export const PATCH = withTeam(
   async (request, _ctx, { teamId, db, session }) => {

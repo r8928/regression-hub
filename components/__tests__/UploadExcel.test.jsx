@@ -37,11 +37,7 @@ describe('UploadExcel', () => {
 
   it('shows an error when a non-.xlsx file is dropped', () => {
     render(<UploadExcel />);
-    const zone =
-      screen
-        .getByText(/Drop \.xlsx file or click to upload/i)
-        .closest('div.upload-zone') ||
-      screen.getByText(/Drop \.xlsx file or click to upload/i).parentElement;
+    const zone = screen.getByTestId('upload-dropzone');
 
     const file = new File(['content'], 'test.csv', { type: 'text/csv' });
     fireEvent.drop(zone, { dataTransfer: { files: [file] } });

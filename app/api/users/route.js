@@ -1,9 +1,9 @@
+import { NextResponse } from 'next/server';
 import { createUser, getUsers } from '@/lib/db/usersData';
 import { ApiError } from '@/lib/errors';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { createUserBodySchema } from '@/lib/schemas/users';
 import { withAdmin } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const GET = withAdmin(async (_req, _ctx, { teamId, db }) => {
   const users = await getUsers(db, teamId);

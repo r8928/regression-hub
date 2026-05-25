@@ -1,6 +1,8 @@
-import NextTopLoader from 'nextjs-toploader';
+import { AppRouterCacheProvider } from '@mui/material-nextjs/v15-appRouter';
 import SessionWrapper from '@/components/SessionWrapper';
 import { fontVariables } from './fonts';
+import ThemeRegistry from './ThemeRegistry';
+import ThemeTopLoader from './ThemeTopLoader';
 import './globals.css';
 
 export const metadata = {
@@ -15,8 +17,12 @@ export default function RootLayout({ children }) {
         <link rel='icon' href='/favicon.svg' type='image/svg+xml' />
       </head>
       <body className={fontVariables} suppressHydrationWarning>
-        <NextTopLoader color='#0d9488' showSpinner={false} />
-        <SessionWrapper>{children}</SessionWrapper>
+        <AppRouterCacheProvider options={{ key: 'mui' }}>
+          <ThemeRegistry>
+            <ThemeTopLoader />
+            <SessionWrapper>{children}</SessionWrapper>
+          </ThemeRegistry>
+        </AppRouterCacheProvider>
       </body>
     </html>
   );

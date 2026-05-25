@@ -1,8 +1,8 @@
+import { NextResponse } from 'next/server';
 import { deactivateUser, updateUser } from '@/lib/db/usersData';
 import { ApiError } from '@/lib/errors';
 import { updateUserBodySchema } from '@/lib/schemas/users';
 import { withAdmin } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const PATCH = withAdmin(
   async (request, { params }, { teamId, db, session }) => {

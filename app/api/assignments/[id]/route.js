@@ -1,6 +1,6 @@
+import { NextResponse } from 'next/server';
 import { deleteAssignment, updateAssignment } from '@/lib/db/assignmentsData';
 import { withTeam } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const PATCH = withTeam(async (request, { params }, { teamId, db }) => {
   const { id } = await params;

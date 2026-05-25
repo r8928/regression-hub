@@ -1,5 +1,5 @@
-import { describe, it, expect } from 'vitest';
-import { normalizeHeader, canonicalColumn } from '../canonicalColumn';
+import { describe, expect, it } from 'vitest';
+import { canonicalColumn, normalizeHeader } from '../canonicalColumn';
 
 describe('normalizeHeader', () => {
   it('lowercases and strips whitespace', () => {

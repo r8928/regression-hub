@@ -1,9 +1,9 @@
+import { NextResponse } from 'next/server';
 import { getTeamSettings, updateTeamSettings } from '@/lib/db/settingsData';
 import { ApiError } from '@/lib/errors';
 import { checkRateLimit } from '@/lib/rateLimit';
 import { updateSettingsBodySchema } from '@/lib/schemas/settings';
 import { withAdmin, withTeam } from '@/lib/server/withTeam';
-import { NextResponse } from 'next/server';
 
 export const GET = withTeam(async (_req, _ctx, { teamId, db }) => {
   const settings = await getTeamSettings(db, teamId);
